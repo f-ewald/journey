@@ -1,0 +1,17 @@
+:root {
+  font-family: var(--ui-font-family, system-ui, sans-serif);
+  color: var(--ui-text);
+  background: var(--ui-surface-muted);
+}
+
+body {
+  margin: 0;
+}
+
+app-shell {
+  height: 100vh;
+}
+
+#app {
+  padding: 1rem;
+}
