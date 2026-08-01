@@ -1,17 +1,194 @@
 :root {
-  font-family: var(--ui-font-family, system-ui, sans-serif);
-  color: var(--ui-text);
-  background: var(--ui-surface-muted);
+  /* Reserved right-edge gutter the dot rail lives in. */
+  --gutter: 3.5rem;
+  /* Vertical budget for imagery, so a panel fits without inner scrolling. */
+  --media-cap: 32vh;
+
+  font-family: var(--ui-font, system-ui, sans-serif);
+  color: var(--ui-text, #0f172a);
+  background: var(--ui-surface-muted, #f1f5f9);
+}
+
+html {
+  scroll-snap-type: y mandatory;
 }
 
 body {
   margin: 0;
 }
 
-app-shell {
-  height: 100vh;
+/* --- map layer ------------------------------------------------------- */
+
+#map-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
 }
 
-#app {
-  padding: 1rem;
+#map-layer mapbox-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- stops ----------------------------------------------------------- */
+
+#stops {
+  position: relative;
+  z-index: 1;
+}
+
+.stop {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100vh;
+  padding-right: var(--gutter);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* --- panel ----------------------------------------------------------- */
+
+.panel {
+  box-sizing: border-box;
+  width: calc(50vw - var(--gutter));
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: clamp(1.75rem, 3.5vh, 3rem) 3.25rem;
+  background: var(--ui-surface, #ffffff);
+  border-radius: calc(var(--ui-radius, 0.5rem) * 2);
+  box-shadow: var(--ui-shadow-lg, 0 25px 50px -12px rgb(0 0 0 / 0.35));
+
+  /* Presentation-scale typography for the markdown body. */
+  --ui-font-size: 1.35rem;
+  --ui-font-size-lg: 1.75rem;
+  --ui-font-size-sm: 1.1rem;
+}
+
+.panel__counter {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: var(--ui-font-weight-semibold, 600);
+  letter-spacing: var(--ui-tracking-wide, 0.05em);
+  text-transform: uppercase;
+  color: var(--ui-primary, #4f46e5);
+}
+
+.panel__title {
+  margin: 0 0 1.25rem;
+  font-size: clamp(2rem, 2.9vw, 3.25rem);
+  line-height: var(--ui-line-height-tight, 1.2);
+  font-weight: var(--ui-font-weight-bold, 700);
+}
+
+.panel__body {
+  display: block;
+}
+
+.panel__media {
+  display: block;
+  margin: 1.5rem auto 0;
+}
+
+/*
+ * The gallery derives its height from its width via `aspect-ratio`, so capping
+ * the width is the only way to cap the height and keep the panel scroll-free.
+ */
+photo-gallery.panel__media {
+  max-width: min(100%, calc(var(--media-cap) * 16 / 9));
+}
+
+.panel__figure {
+  margin: 1.5rem 0 0;
+}
+
+.panel__figure img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: var(--media-cap);
+  margin-inline: auto;
+  border-radius: var(--ui-radius, 0.5rem);
+}
+
+.panel__figure figcaption {
+  margin-top: 0.75rem;
+  font-size: 1.05rem;
+  color: var(--ui-text-muted, #64748b);
+}
+
+/* --- dot rail -------------------------------------------------------- */
+
+#rail {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  width: var(--gutter);
+  transform: translateY(-50%);
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.rail__dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--ui-text-muted, #64748b);
+  opacity: 0.45;
+  cursor: pointer;
+  transition:
+    height 0.25s ease,
+    opacity 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.rail__dot:hover {
+  opacity: 0.8;
+}
+
+.rail__dot:focus-visible {
+  outline: 2px solid var(--ui-focus-ring, #4f46e5);
+  outline-offset: 3px;
+}
+
+.rail__dot--active {
+  height: 2.25rem;
+  background: var(--ui-primary, #4f46e5);
+  opacity: 1;
+}
+
+/* --- error surface --------------------------------------------------- */
+
+.error-view {
+  box-sizing: border-box;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+.error-view__details {
+  margin: 1.5rem 0 0;
+  padding-left: 1.25rem;
+  font-family: var(--ui-font-mono, ui-monospace, monospace);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ui-text-muted, #64748b);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail__dot {
+    transition: none;
+  }
 }

@@ -7,11 +7,11 @@
     <title>Map Journey</title>
   </head>
   <body>
-    <app-shell>
-      <app-sidebar slot="sidebar"></app-sidebar>
-      <page-header slot="topbar" heading="Map Journey"></page-header>
-      <main id="app"></main>
-    </app-shell>
+    <div id="app">
+      <div id="map-layer" aria-hidden="true"></div>
+      <main id="stops"></main>
+      <div id="rail"></div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
