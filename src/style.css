@@ -169,6 +169,33 @@ photo-gallery.panel__media {
   opacity: 1;
 }
 
+/* --- fullscreen toggle ----------------------------------------------- */
+
+/*
+ * Shares the rail's gutter column so it can never overlap the panel, sitting
+ * at the bottom where it stays clear of the vertically-centred dots — and high
+ * enough to leave Mapbox's attribution strip fully visible.
+ */
+#fullscreen {
+  position: fixed;
+  right: 0;
+  bottom: 2rem;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  width: var(--gutter);
+}
+
+.fullscreen-toggle {
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+
+.fullscreen-toggle:hover,
+.fullscreen-toggle:focus-within {
+  opacity: 1;
+}
+
 /* --- error surface --------------------------------------------------- */
 
 .error-view {
@@ -188,7 +215,8 @@ photo-gallery.panel__media {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rail__dot {
+  .rail__dot,
+  .fullscreen-toggle {
     transition: none;
   }
 }

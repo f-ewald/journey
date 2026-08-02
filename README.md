@@ -70,6 +70,8 @@ renders as a plain figure, several become a carousel.
 - **Keyboard** — space, page up/down and the arrow keys work as usual.
 - **Dot rail** — click any dot to glide to that stop; the active stop is the
   elongated bar.
+- **Full screen** — the button below the rail expands the deck to fill the
+  display; press it again or hit Escape to leave.
 - **URL** — the active stop is mirrored as `#stop-3`, so a reload or a shared
   link resumes at the same place.
 
@@ -90,7 +92,7 @@ token.
 | --- | --- |
 | `src/journey/` | YAML schema (zod) and the runtime loader. |
 | `src/map/` | Mapbox controller (camera, markers, line) and its pure geometry helpers. |
-| `src/ui/` | Sections and panels, the dot rail, and the error surface. |
+| `src/ui/` | Sections and panels, the dot rail, the fullscreen toggle, and the error surface. |
 | `src/scroll.ts` | The single active-stop and line-progress signal everything else consumes. |
 | `src/hash.ts` | `#stop-n` deep linking. |
 | `scripts/` | `validate-journey.mjs`, which reuses the same schema as the app. |

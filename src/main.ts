@@ -11,6 +11,7 @@ import { prefersReducedMotion } from "./motion.ts";
 import { indexFromHash, replaceHash } from "./hash.ts";
 import { observeScroll, type ScrollState } from "./scroll.ts";
 import { renderError } from "./ui/error-view.ts";
+import { renderFullscreenButton } from "./ui/fullscreen.ts";
 import { renderRail } from "./ui/rail.ts";
 import { renderSections } from "./ui/sections.ts";
 
@@ -78,8 +79,28 @@ function start(journey: Journey, token: string): void {
     initial,
   );
 
+  renderFullscreenButton(requireElement("#fullscreen"), () =>
+    realign(sections, lastActive, controller),
+  );
+
   bindMapReady(controller, () => latest);
   bindResize(controller);
+}
+
+/**
+ * Re-pins the deck to the active stop after the viewport height changes, since
+ * every section is sized in `vh` and the scroll offset would otherwise land
+ * between two stops. Deferred two frames so the new layout is settled first.
+ */
+function realign(sections: HTMLElement[], index: number, controller: MapController): void {
+  const section = sections[index];
+  if (!section) return;
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      section.scrollIntoView({ behavior: "auto", block: "start" });
+      controller.reframe();
+    }),
+  );
 }
 
 /** Constructs the map already centred on `initialIndex`, avoiding a first-stop flash. */
