@@ -53,16 +53,48 @@ stops:
     lng: -122.4194             # required
     lat: 37.7749               # required
     zoom: 11.5                 # optional, overrides defaultZoom
-    body: |                    # optional markdown
-      ## Where it begins
-
+    body: |                    # optional markdown, see below
       Fog rolls through the Golden Gate most summer mornings.
     images:                    # optional
-      - src: /images/golden-gate.svg
-        alt: Stylised view of the Golden Gate Bridge
-        caption: Leaving the city
+      - src: /images/golden-gate.jpg
+        alt: The Golden Gate Bridge at dawn
+        caption: Leaving the city   # optional
       - /images/bay.jpg        # shorthand: a bare path
 ```
+
+### Text on a card
+
+Put it in `body`, using a YAML block scalar — the `|` keeps your line breaks:
+
+```yaml
+  - title: College & Startup
+    location: Vienna, Germany
+    year: 2005
+    lng: 7.0119
+    lat: 51.4576
+    body: |
+      Studied here, and started a first company on the side. Markdown works in
+      this field: **bold**, *italic*, and [links](https://example.com).
+
+      - Bullet lists suit a few short highlights
+      - One line each stays readable from the back of the room
+
+      > A blockquote pulls out a line worth dwelling on.
+```
+
+Everything is indented under `body:` and separated by blank lines, exactly as in
+a markdown file. Headings, ordered and unordered lists, tables, code blocks,
+blockquotes, links and emphasis all render, styled to match the deck and scaled
+up for projection. The markdown is sanitised before it is inserted, so pasted
+content cannot inject scripts.
+
+Two things worth knowing when writing for a room rather than a screen:
+
+- The card grows with its content and scrolls internally past roughly 88% of the
+  viewport height, so keep a stop to a handful of lines. If a card scrolls, the
+  audience will not see the overflow.
+- The stop's title is already the card's heading. Start the body at `###` if you
+  need a sub-heading, so you don't compete with it.
 
 `year` and `location` share one line above the title, in the same monospaced
 face, with the location a shade darker. Both are optional and independent:
