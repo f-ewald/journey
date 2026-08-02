@@ -76,6 +76,15 @@ body {
   color: var(--ui-primary, #4f46e5);
 }
 
+.panel__year {
+  margin: 0 0 0.25rem;
+  font-size: clamp(2.5rem, 4vw, 4.5rem);
+  font-weight: var(--ui-font-weight-bold, 700);
+  line-height: 1;
+  letter-spacing: var(--ui-tracking-wide, 0.05em);
+  color: var(--ui-primary, #4f46e5);
+}
+
 .panel__title {
   margin: 0 0 1.25rem;
   font-size: clamp(2rem, 2.9vw, 3.25rem);
@@ -121,6 +130,12 @@ photo-gallery.panel__media {
 
 /* --- dot rail -------------------------------------------------------- */
 
+/*
+ * `will-change` promotes the rail to its own compositor layer. Without it the
+ * browser repaints this fixed element on the main thread on top of the map's
+ * WebGL canvas, which flickers and renders the dots with squared-off edges
+ * while a scroll and a camera flight are competing for that thread.
+ */
 #rail {
   position: fixed;
   top: 50%;
@@ -130,6 +145,8 @@ photo-gallery.panel__media {
   justify-content: center;
   width: var(--gutter);
   transform: translateY(-50%);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .rail {
@@ -149,7 +166,6 @@ photo-gallery.panel__media {
   opacity: 0.45;
   cursor: pointer;
   transition:
-    height 0.25s ease,
     opacity 0.25s ease,
     background-color 0.25s ease;
 }
@@ -184,6 +200,8 @@ photo-gallery.panel__media {
   display: flex;
   justify-content: center;
   width: var(--gutter);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .fullscreen-toggle {

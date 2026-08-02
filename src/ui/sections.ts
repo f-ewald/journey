@@ -33,11 +33,19 @@ function createPanel(stop: JourneyStop, index: number, total: number): HTMLEleme
   counter.className = "panel__counter";
   counter.textContent = `${pad(index + 1)} / ${pad(total)}`;
 
+  panel.append(counter);
+
+  if (stop.year) {
+    const year = document.createElement("p");
+    year.className = "panel__year";
+    year.textContent = stop.year;
+    panel.append(year);
+  }
+
   const heading = document.createElement("h2");
   heading.className = "panel__title";
   heading.textContent = stop.title;
-
-  panel.append(counter, heading);
+  panel.append(heading);
 
   if (stop.body.trim() !== "") {
     const body = document.createElement("markdown-view");

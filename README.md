@@ -46,6 +46,7 @@ defaultZoom: 10                            # optional, used when a stop omits `z
 
 stops:
   - title: Lisbon       # required
+    year: 2011                 # optional, shown prominently above the title
     lng: -122.4194             # required
     lat: 37.7749               # required
     zoom: 11.5                 # optional, overrides defaultZoom
@@ -60,8 +61,9 @@ stops:
       - /images/bay.jpg        # shorthand: a bare path
 ```
 
-Unknown keys are rejected, so a typo like `titel:` is an error rather than a
-silently missing field. Images are served straight from `public/`; one image
+`year` accepts a number or a string, so both `year: 2011` and
+`year: "2011-2014"` work. Unknown keys are rejected, so a typo like `titel:` is
+an error rather than a silently missing field. Images are served straight from `public/`; one image
 renders as a plain figure, several become a carousel.
 
 ## Navigation

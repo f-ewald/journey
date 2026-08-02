@@ -18,8 +18,14 @@ const imageSchema = z.union([
   imageObjectSchema,
 ]);
 
+/** `year: 2011` and `year: "2011-2014"` are both valid; both become strings. */
+const yearSchema = z
+  .union([z.string().min(1), z.number()])
+  .transform((value) => String(value));
+
 const stopSchema = z.strictObject({
   title: z.string().min(1),
+  year: yearSchema.optional(),
   lng: z.number().min(-180).max(180),
   lat: z.number().min(-90).max(90),
   zoom: z.number().min(0).max(22).optional(),
