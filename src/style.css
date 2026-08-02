@@ -76,13 +76,15 @@ body {
   color: var(--ui-primary, #4f46e5);
 }
 
+/* Secondary to the place name: smaller, muted, monospaced. */
 .panel__year {
-  margin: 0 0 0.25rem;
-  font-size: clamp(2.5rem, 4vw, 4.5rem);
-  font-weight: var(--ui-font-weight-bold, 700);
+  margin: 0 0 0.4rem;
+  font-family: var(--ui-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: clamp(1.05rem, 1.3vw, 1.45rem);
+  font-weight: var(--ui-font-weight-medium, 500);
   line-height: 1;
   letter-spacing: var(--ui-tracking-wide, 0.05em);
-  color: var(--ui-primary, #4f46e5);
+  color: var(--ui-text-muted, #64748b);
 }
 
 .panel__title {
