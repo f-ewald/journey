@@ -47,8 +47,9 @@ defaultZoom: 10                          # optional, used when a stop omits `zoo
 flyDurationMs: 2570                      # optional, camera flight time; higher is slower
 
 stops:
-  - title: Lisbon       # required
-    year: 2011                 # optional, shown prominently above the title
+  - title: Northwind Labs            # required — the place or organisation
+    location: Porto, CA # optional, geographic context for the title
+    year: 2011                 # optional, shown above the title
     lng: -122.4194             # required
     lat: 37.7749               # required
     zoom: 11.5                 # optional, overrides defaultZoom
@@ -63,9 +64,11 @@ stops:
       - /images/bay.jpg        # shorthand: a bare path
 ```
 
-`year` accepts a number or a string, so both `year: 2011` and
-`year: "2011-2014"` work. It is optional: omit it (or leave it empty) and the
-stop simply renders without a year line. Unknown keys are rejected, so a typo
+`year` and `location` share one line above the title, in the same monospaced
+face, with the location a shade darker. Both are optional and independent:
+supply either, both, or neither. With both missing the line is dropped entirely
+rather than left as blank space. `year` accepts a number or a string, so both
+`year: 2011` and `year: "2011-2014"` work. Unknown keys are rejected, so a typo
 like `titel:` is an error rather than a silently missing field.
 
 `flyDurationMs` sets how long the camera takes to travel between stops, in

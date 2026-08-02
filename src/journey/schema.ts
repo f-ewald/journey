@@ -30,6 +30,8 @@ const yearSchema = z
 const stopSchema = z.strictObject({
   title: z.string().min(1),
   year: yearSchema.nullish(),
+  /** Geographic context for the title, e.g. "Porto, CA". */
+  location: z.string().min(1).nullish(),
   lng: z.number().min(-180).max(180),
   lat: z.number().min(-90).max(90),
   zoom: z.number().min(0).max(22).optional(),

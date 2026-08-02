@@ -35,12 +35,8 @@ function createPanel(stop: JourneyStop, index: number, total: number): HTMLEleme
 
   panel.append(counter);
 
-  if (stop.year) {
-    const year = document.createElement("p");
-    year.className = "panel__year";
-    year.textContent = stop.year;
-    panel.append(year);
-  }
+  const meta = createMeta(stop);
+  if (meta) panel.append(meta);
 
   const heading = document.createElement("h2");
   heading.className = "panel__title";
@@ -58,6 +54,34 @@ function createPanel(stop: JourneyStop, index: number, total: number): HTMLEleme
   if (media) panel.append(media);
 
   return panel;
+}
+
+/**
+ * The secondary line above the title: year, then location, side by side. Either
+ * may be absent — with both missing the line is omitted entirely so no empty
+ * gap is left above the title.
+ */
+function createMeta(stop: JourneyStop): HTMLElement | null {
+  if (!stop.year && !stop.location) return null;
+
+  const meta = document.createElement("p");
+  meta.className = "panel__meta";
+
+  if (stop.year) {
+    const year = document.createElement("span");
+    year.className = "panel__year";
+    year.textContent = stop.year;
+    meta.append(year);
+  }
+
+  if (stop.location) {
+    const location = document.createElement("span");
+    location.className = "panel__location";
+    location.textContent = stop.location;
+    meta.append(location);
+  }
+
+  return meta;
 }
 
 /** Single images render plainly; multiples become a constant-height carousel. */

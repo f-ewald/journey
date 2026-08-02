@@ -77,14 +77,30 @@ body {
 }
 
 /* Secondary to the place name: smaller, muted, monospaced. */
-.panel__year {
+.panel__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75em;
   margin: 0 0 0.4rem;
   font-family: var(--ui-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
   font-size: clamp(1.05rem, 1.3vw, 1.45rem);
   font-weight: var(--ui-font-weight-medium, 500);
   line-height: 1;
   letter-spacing: var(--ui-tracking-wide, 0.05em);
+}
+
+.panel__year {
   color: var(--ui-text-muted, #64748b);
+}
+
+/*
+ * A step darker than the year so the place reads as the more substantial of
+ * the two, while staying clearly below the title. Mixed from the tokens rather
+ * than hardcoded so it still tracks the dark palette.
+ */
+.panel__location {
+  color: #475569;
+  color: color-mix(in srgb, var(--ui-text, #0f172a) 45%, var(--ui-text-muted, #64748b));
 }
 
 .panel__title {
