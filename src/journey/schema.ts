@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-export const DEFAULT_MAP_STYLE = "mapbox://styles/mapbox/light-v11";
+export const DEFAULT_MAP_STYLE = "mapbox://styles/mapbox/standard";
+/** Only applies to styles built on Mapbox Standard; ignored by classic styles. */
+export const DEFAULT_MAP_THEME = "faded";
 export const DEFAULT_ZOOM = 11;
 
 const imageObjectSchema = z.strictObject({
@@ -25,7 +27,7 @@ const yearSchema = z
 
 const stopSchema = z.strictObject({
   title: z.string().min(1),
-  year: yearSchema.optional(),
+  year: yearSchema.nullish(),
   lng: z.number().min(-180).max(180),
   lat: z.number().min(-90).max(90),
   zoom: z.number().min(0).max(22).optional(),
@@ -36,6 +38,7 @@ const stopSchema = z.strictObject({
 export const journeySchema = z.strictObject({
   title: z.string().min(1).default("Map Journey"),
   mapStyle: z.string().min(1).default(DEFAULT_MAP_STYLE),
+  mapTheme: z.enum(["default", "faded", "monochrome"]).default(DEFAULT_MAP_THEME),
   defaultZoom: z.number().min(0).max(22).default(DEFAULT_ZOOM),
   stops: z.array(stopSchema).min(1),
 });

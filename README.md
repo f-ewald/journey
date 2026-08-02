@@ -40,9 +40,10 @@ path (e.g. `stops.2.lat`), and the running app shows the same message on screen
 rather than failing silently.
 
 ```yaml
-title: California Coast Journey            # optional, also used as the page title
-mapStyle: mapbox://styles/mapbox/light-v11 # optional
-defaultZoom: 10                            # optional, used when a stop omits `zoom`
+title: California Coast Journey          # optional, also used as the page title
+mapStyle: mapbox://styles/mapbox/standard # optional
+mapTheme: faded                          # optional: default | faded | monochrome
+defaultZoom: 10                          # optional, used when a stop omits `zoom`
 
 stops:
   - title: Lisbon       # required
@@ -62,8 +63,16 @@ stops:
 ```
 
 `year` accepts a number or a string, so both `year: 2011` and
-`year: "2011-2014"` work. Unknown keys are rejected, so a typo like `titel:` is
-an error rather than a silently missing field. Images are served straight from `public/`; one image
+`year: "2011-2014"` work. It is optional: omit it (or leave it empty) and the
+stop simply renders without a year line. Unknown keys are rejected, so a typo
+like `titel:` is an error rather than a silently missing field.
+
+The basemap is [Mapbox Standard](https://docs.mapbox.com/map-styles/reference/standard/)
+with road, POI and transit labels suppressed and administrative boundaries kept,
+so the map reads politically and geographically rather than as a street map.
+`mapTheme` tunes its saturation and only applies to Standard — classic styles
+(`light-v11`, `outdoors-v12`, …) ignore it, and the label configuration is
+skipped for them automatically. Images are served straight from `public/`; one image
 renders as a plain figure, several become a carousel.
 
 ## Navigation

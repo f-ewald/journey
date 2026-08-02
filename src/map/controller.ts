@@ -15,6 +15,23 @@ import {
 const LINE_SOURCE = "journey-line";
 const LINE_LAYER = "journey-line";
 const FLY_DURATION_MS = 1800;
+/** The import id Mapbox Standard exposes its configuration under. */
+const BASEMAP_IMPORT = "basemap";
+
+/**
+ * Pushes the basemap toward political and geographic reading: administrative
+ * boundaries stay, while road, POI and transit labels — and 3D objects, which
+ * only add noise at presentation zooms — are suppressed. Roads themselves
+ * remain as recessive context.
+ */
+const BASEMAP_CONFIG: Record<string, boolean> = {
+  showRoadLabels: false,
+  showPointOfInterestLabels: false,
+  showTransitLabels: false,
+  showPlaceLabels: true,
+  showAdminBoundaries: true,
+  show3dObjects: false,
+};
 
 interface StopMarkers {
   circle: Marker;
@@ -43,10 +60,26 @@ export class MapController {
   /** Binds to a ready map instance and registers markers and the line layer. */
   attach(map: MapboxMap): void {
     this.map = map;
+    this.applyBasemapConfig(map);
     this.createMarkers(map);
     this.createLineLayer(map);
     this.applyMarkerVisibility();
     this.writeLine();
+  }
+
+  /**
+   * Applies the Standard basemap configuration. Classic styles (light, outdoors,
+   * satellite) carry no `basemap` import and simply have nothing to configure,
+   * so this is skipped rather than allowed to throw.
+   */
+  private applyBasemapConfig(map: MapboxMap): void {
+    const imports = (map.getStyle() as { imports?: Array<{ id: string }> } | undefined)?.imports;
+    if (!imports?.some((entry) => entry.id === BASEMAP_IMPORT)) return;
+
+    for (const [key, value] of Object.entries(BASEMAP_CONFIG)) {
+      map.setConfigProperty(BASEMAP_IMPORT, key, value);
+    }
+    map.setConfigProperty(BASEMAP_IMPORT, "theme", this.journey.mapTheme);
   }
 
   /** Re-registers everything a style swap discarded. */
