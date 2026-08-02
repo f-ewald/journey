@@ -14,7 +14,6 @@ import {
 
 const LINE_SOURCE = "journey-line";
 const LINE_LAYER = "journey-line";
-const FLY_DURATION_MS = 1800;
 /** The import id Mapbox Standard exposes its configuration under. */
 const BASEMAP_IMPORT = "basemap";
 
@@ -112,7 +111,7 @@ export class MapController {
       map.jumpTo(camera);
       return;
     }
-    map.flyTo({ ...camera, duration: FLY_DURATION_MS, essential: true });
+    map.flyTo({ ...camera, duration: this.journey.flyDurationMs, essential: true });
   }
 
   /** Re-applies the left-third framing after a viewport resize. */

@@ -4,6 +4,8 @@ export const DEFAULT_MAP_STYLE = "mapbox://styles/mapbox/standard";
 /** Only applies to styles built on Mapbox Standard; ignored by classic styles. */
 export const DEFAULT_MAP_THEME = "faded";
 export const DEFAULT_ZOOM = 11;
+/** Camera flight time between stops, in milliseconds. Higher is slower. */
+export const DEFAULT_FLY_DURATION_MS = 2570;
 
 const imageObjectSchema = z.strictObject({
   src: z.string().min(1),
@@ -40,6 +42,7 @@ export const journeySchema = z.strictObject({
   mapStyle: z.string().min(1).default(DEFAULT_MAP_STYLE),
   mapTheme: z.enum(["default", "faded", "monochrome"]).default(DEFAULT_MAP_THEME),
   defaultZoom: z.number().min(0).max(22).default(DEFAULT_ZOOM),
+  flyDurationMs: z.number().min(0).max(20000).default(DEFAULT_FLY_DURATION_MS),
   stops: z.array(stopSchema).min(1),
 });
 

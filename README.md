@@ -44,6 +44,7 @@ title: California Coast Journey          # optional, also used as the page title
 mapStyle: mapbox://styles/mapbox/standard # optional
 mapTheme: faded                          # optional: default | faded | monochrome
 defaultZoom: 10                          # optional, used when a stop omits `zoom`
+flyDurationMs: 2570                      # optional, camera flight time; higher is slower
 
 stops:
   - title: Lisbon       # required
@@ -66,6 +67,12 @@ stops:
 `year: "2011-2014"` work. It is optional: omit it (or leave it empty) and the
 stop simply renders without a year line. Unknown keys are rejected, so a typo
 like `titel:` is an error rather than a silently missing field.
+
+`flyDurationMs` sets how long the camera takes to travel between stops, in
+milliseconds — raise it to slow the transition down. It applies per hop, so a
+short hop and a transatlantic one take the same time. Under
+`prefers-reduced-motion` the camera jumps instantly and the value is ignored.
+Scroll and rail-click scrolling are handled by the browser and are not affected.
 
 The basemap is [Mapbox Standard](https://docs.mapbox.com/map-styles/reference/standard/)
 with road, POI and transit labels suppressed and administrative boundaries kept,
