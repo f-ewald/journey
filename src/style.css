@@ -2,7 +2,7 @@
   /* Reserved right-edge gutter the dot rail lives in. */
   --gutter: 3.5rem;
   /* Vertical budget for imagery, so a panel fits without inner scrolling. */
-  --media-cap: 32vh;
+  --media-cap: 52vh;
 
   font-family: var(--ui-font, system-ui, sans-serif);
   color: var(--ui-text, #0f172a);
@@ -133,10 +133,11 @@ photo-gallery.panel__media {
 
 .panel__figure img {
   display: block;
-  width: auto;
-  max-width: 100%;
+  width: 100%;
   max-height: var(--media-cap);
-  margin-inline: auto;
+  /* Only engages if the height cap binds on a short viewport; crops rather
+     than distorting the photo. */
+  object-fit: cover;
   border-radius: var(--ui-radius, 0.5rem);
 }
 
