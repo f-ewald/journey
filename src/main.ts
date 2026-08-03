@@ -38,14 +38,17 @@ async function main(): Promise<void> {
 
   const result = await loadDeck(JOURNEY_URL);
   if (!result.ok) {
-    renderError(app, result.title, result.details);
+    renderError(app, result.title, result.issues);
     return;
   }
 
   const token = import.meta.env.VITE_MAPBOX_TOKEN?.trim() ?? "";
   if (token === "") {
     renderError(app, "No Mapbox access token configured", [
-      "Copy `.env.example` to `.env`, set VITE_MAPBOX_TOKEN, then restart the dev server.",
+      {
+        message:
+          "Copy `.env.example` to `.env`, set VITE_MAPBOX_TOKEN, then restart the dev server.",
+      },
     ]);
     return;
   }

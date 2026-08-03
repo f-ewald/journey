@@ -39,9 +39,19 @@ explicit error instead of a blank map. `.env` is gitignored.
 
 All content lives in `public/journey.yaml`. It is fetched at runtime, so editing
 it needs no rebuild — save the file and reload the page. Run `npm run validate`
-to check it without opening a browser; any problem is reported with its exact
-path (e.g. `stops.2.lat`), and the running app shows the same message on screen
-rather than failing silently. It also checks that every referenced image exists:
+to check it without opening a browser. Every problem is reported the way a
+compiler reports one — `journey.yaml:40:10`, the document path, and the
+offending line with a caret under the column:
+
+```
+journey.yaml:40:10
+stops.1.lng — Invalid input: expected number, received string
+  40 |     lng: eight
+                ^
+```
+
+The running app shows exactly the same thing on screen rather than failing
+silently, so a broken deck can be fixed from the projector. It also checks that every referenced image exists:
 the dev server answers an unknown path with the app's HTML and a `200`, so a
 mistyped image path otherwise yields a silently broken image rather than an
 error.

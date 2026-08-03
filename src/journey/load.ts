@@ -1,76 +1,175 @@
-import { parse } from "yaml";
+import { LineCounter, parseDocument, type Document } from "yaml";
 import {
   cardFileSchema,
-  formatIssues,
   journeySchema,
+  schemaIssues,
   type CardFile,
   type Journey,
   type JourneyCard,
+  type SchemaIssue,
 } from "./schema.ts";
+
+/**
+ * One problem with a content file, located precisely enough to fix without
+ * hunting: the file it is in, the line and column it starts at, the path
+ * through the document, and the offending source line itself.
+ */
+export interface SourceIssue {
+  /** File the problem is in, e.g. `journey.yaml`. Absent for non-file errors. */
+  file?: string;
+  /** 1-based line, when the problem could be located in the source. */
+  line?: number;
+  /** 1-based column. */
+  column?: number;
+  /** Path into the document, e.g. `stops.2.lat`. */
+  path?: string;
+  message: string;
+  /** The offending source line, trimmed of trailing whitespace. */
+  excerpt?: string;
+}
 
 export type JourneyResult =
   | { ok: true; journey: Journey }
-  | { ok: false; title: string; details: string[] };
+  | { ok: false; title: string; issues: SourceIssue[] };
 
 export type CardFileResult =
   | { ok: true; cards: CardFile["cards"] }
-  | { ok: false; title: string; details: string[] };
+  | { ok: false; title: string; issues: SourceIssue[] };
 
 export type DeckResult =
   | { ok: true; journey: Journey; intro: JourneyCard[]; outro: JourneyCard[] }
-  | { ok: false; title: string; details: string[] };
+  | { ok: false; title: string; issues: SourceIssue[] };
 
-type ParseFailure = { title: string; details: string[] };
+type Failure = { ok: false; title: string; issues: SourceIssue[] };
+
+interface ParsedDocument {
+  doc: Document.Parsed;
+  lineCounter: LineCounter;
+}
 
 /**
- * Parses `source` as a YAML mapping. Returns the raw value, or a failure
- * describing the syntax error or wrong root type, labelled with `name`.
+ * Parses `source` into a document that still knows where everything came from,
+ * or fails with every syntax error located by line and column.
  */
-function parseMapping(
+function parseWithPositions(
   source: string,
-  name: string,
-  rootHint: string,
-): { ok: true; raw: unknown } | ({ ok: false } & ParseFailure) {
-  let raw: unknown;
-  try {
-    raw = parse(source);
-  } catch (error) {
+  file: string,
+): { ok: true; parsed: ParsedDocument } | Failure {
+  const lineCounter = new LineCounter();
+  const doc = parseDocument(source, { lineCounter });
+
+  if (doc.errors.length > 0) {
     return {
       ok: false,
-      title: `${name} is not valid YAML`,
-      details: [error instanceof Error ? error.message : String(error)],
+      title: `${file} is not valid YAML`,
+      issues: doc.errors.map((error) => {
+        const start = error.linePos?.[0];
+        return {
+          file,
+          line: start?.line,
+          column: start?.col,
+          message: describe(error.message),
+          excerpt: start ? lineAt(source, start.line) : undefined,
+        };
+      }),
     };
   }
 
-  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
-    return {
-      ok: false,
-      title: `${name} is empty or not a mapping`,
-      details: [`Expected a top-level mapping with a \`${rootHint}\` list.`],
-    };
-  }
+  return { ok: true, parsed: { doc, lineCounter } };
+}
 
-  return { ok: true, raw };
+/**
+ * Locates a schema issue in the source. A missing key has no node of its own,
+ * so the path is walked back toward the root until something with a position is
+ * found — pointing at the mapping that should have contained it.
+ */
+function locate(
+  { doc, lineCounter }: ParsedDocument,
+  source: string,
+  file: string,
+  issue: SchemaIssue,
+): SourceIssue {
+  for (let path = issue.path; ; path = path.slice(0, -1)) {
+    const node: unknown =
+      path.length > 0 ? doc.getIn(path, true) : doc.contents;
+    const range = (node as { range?: [number, number, number] } | undefined)
+      ?.range;
+    if (range) {
+      const position = lineCounter.linePos(range[0]);
+      return {
+        file,
+        line: position.line,
+        column: position.col,
+        path: issue.label,
+        message: issue.message,
+        excerpt: lineAt(source, position.line),
+      };
+    }
+    if (path.length === 0)
+      return { file, path: issue.label, message: issue.message };
+  }
+}
+
+/**
+ * The parser appends its own `at line N, column M:` and a source excerpt to
+ * every message. Both are reported separately here, so only the description is
+ * kept — otherwise each problem prints its location and excerpt twice.
+ */
+function describe(message: string): string {
+  return message.split(/ at line \d+, column \d+:/)[0].trim();
+}
+
+/**
+ * Position of `path` within a YAML source, for problems found after parsing —
+ * a referenced image that does not exist, say — so they can be reported the
+ * same way schema violations are.
+ */
+export function locatePath(
+  source: string,
+  path: Array<string | number>,
+): Pick<SourceIssue, "line" | "column" | "excerpt"> {
+  const parsed = parseWithPositions(source, "");
+  if (!parsed.ok) return {};
+  const located = locate(parsed.parsed, source, "", { path, label: "", message: "" });
+  return { line: located.line, column: located.column, excerpt: located.excerpt };
+}
+
+/** The 1-based `line` of `source`, with trailing whitespace removed. */
+function lineAt(source: string, line: number): string | undefined {
+  return source.split("\n")[line - 1]?.trimEnd();
 }
 
 /**
  * Parses and validates a journey YAML document. Never throws: syntax errors,
  * a non-mapping root, and schema violations all come back as `ok: false` with
- * one human-readable detail line per problem.
+ * one located issue per problem.
  */
 export function parseJourney(
   source: string,
-  name = "journey.yaml",
+  file = "journey.yaml",
 ): JourneyResult {
-  const mapping = parseMapping(source, name, "stops");
-  if (!mapping.ok) return mapping;
+  const parsed = parseWithPositions(source, file);
+  if (!parsed.ok) return parsed;
 
-  const result = journeySchema.safeParse(mapping.raw);
+  const raw: unknown = parsed.parsed.doc.toJS();
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    return {
+      ok: false,
+      title: `${file} is empty or not a mapping`,
+      issues: [
+        { file, message: "Expected a top-level mapping with a `stops` list." },
+      ],
+    };
+  }
+
+  const result = journeySchema.safeParse(raw);
   if (!result.success) {
     return {
       ok: false,
-      title: `${name} does not match the expected schema`,
-      details: formatIssues(result.error),
+      title: `${file} does not match the expected schema`,
+      issues: schemaIssues(result.error).map((issue) =>
+        locate(parsed.parsed, source, file, issue),
+      ),
     };
   }
 
@@ -78,16 +177,29 @@ export function parseJourney(
 }
 
 /** Parses and validates an intro/outro card file. Never throws. */
-export function parseCardFile(source: string, name: string): CardFileResult {
-  const mapping = parseMapping(source, name, "cards");
-  if (!mapping.ok) return mapping;
+export function parseCardFile(source: string, file: string): CardFileResult {
+  const parsed = parseWithPositions(source, file);
+  if (!parsed.ok) return parsed;
 
-  const result = cardFileSchema.safeParse(mapping.raw);
+  const raw: unknown = parsed.parsed.doc.toJS();
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    return {
+      ok: false,
+      title: `${file} is empty or not a mapping`,
+      issues: [
+        { file, message: "Expected a top-level mapping with a `cards` list." },
+      ],
+    };
+  }
+
+  const result = cardFileSchema.safeParse(raw);
   if (!result.success) {
     return {
       ok: false,
-      title: `${name} does not match the expected schema`,
-      details: formatIssues(result.error),
+      title: `${file} does not match the expected schema`,
+      issues: schemaIssues(result.error).map((issue) =>
+        locate(parsed.parsed, source, file, issue),
+      ),
     };
   }
 
@@ -97,15 +209,19 @@ export function parseCardFile(source: string, name: string): CardFileResult {
 /** Fetches `url` as text, or describes why it could not be read. */
 async function fetchText(
   url: string,
-): Promise<{ ok: true; source: string } | ({ ok: false } & ParseFailure)> {
+): Promise<{ ok: true; source: string } | Failure> {
+  const file = fileNameOf(url);
   try {
     const response = await fetch(url);
     if (!response.ok) {
       return {
         ok: false,
-        title: `Could not load ${url}`,
-        details: [
-          `The server responded with ${response.status} ${response.statusText}.`,
+        title: `Could not load ${file}`,
+        issues: [
+          {
+            file,
+            message: `The server responded with ${response.status} ${response.statusText}.`,
+          },
         ],
       };
     }
@@ -113,8 +229,13 @@ async function fetchText(
   } catch (error) {
     return {
       ok: false,
-      title: `Could not load ${url}`,
-      details: [error instanceof Error ? error.message : String(error)],
+      title: `Could not load ${file}`,
+      issues: [
+        {
+          file,
+          message: error instanceof Error ? error.message : String(error),
+        },
+      ],
     };
   }
 }
@@ -123,19 +244,23 @@ async function fetchText(
 export async function loadJourney(url: string): Promise<JourneyResult> {
   const text = await fetchText(url);
   if (!text.ok) return text;
-  return parseJourney(text.source, url.replace(/^\//, ""));
+  return parseJourney(text.source, fileNameOf(url));
 }
 
 /** Fetches an intro/outro card file and validates it. Never throws. */
 export async function loadCardFile(url: string): Promise<CardFileResult> {
   const text = await fetchText(url);
   if (!text.ok) return text;
-  return parseCardFile(text.source, url.replace(/^\//, ""));
+  return parseCardFile(text.source, fileNameOf(url));
 }
 
 /** Resolves a card file path from `journey.yaml` against the site root. */
 export function cardFileUrl(path: string): string {
   return path.startsWith("/") || /^https?:/.test(path) ? path : `/${path}`;
+}
+
+function fileNameOf(url: string): string {
+  return url.replace(/^https?:\/\/[^/]+/, "").replace(/^\//, "");
 }
 
 /**

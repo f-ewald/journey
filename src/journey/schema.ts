@@ -90,14 +90,27 @@ export type JourneyCard = PlacelessCard | JourneyStop;
 export type CardFile = z.infer<typeof cardFileSchema>;
 export type Journey = z.infer<typeof journeySchema>;
 
-/**
- * Renders zod issues as one `path: message` line per issue, using `(root)` for
- * issues that carry no path.
- */
-export function formatIssues(error: z.ZodError): string[] {
+/** One schema violation, with the document path that caused it. */
+export interface SchemaIssue {
+  /** Path into the document, e.g. `["stops", 2, "lat"]`. Empty at the root. */
+  path: Array<string | number>;
+  /** The same path rendered for display, or `(root)`. */
+  label: string;
+  message: string;
+}
+
+/** Flattens a zod error into one issue per violation, keeping the raw path. */
+export function schemaIssues(error: z.ZodError): SchemaIssue[] {
   return error.issues.map((issue) => {
-    const path = issue.path.length > 0 ? issue.path.join(".") : "(root)";
-    return `${path}: ${issue.message}`;
+    const path = issue.path.filter(
+      (segment): segment is string | number =>
+        typeof segment === "string" || typeof segment === "number",
+    );
+    return {
+      path,
+      label: path.length > 0 ? path.join(".") : "(root)",
+      message: issue.message,
+    };
   });
 }
 

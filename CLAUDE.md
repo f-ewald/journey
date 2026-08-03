@@ -84,9 +84,11 @@ Break these and the deck fails in ways that are hard to see.
    `npm run validate`. An unknown key is a hard error, so adding a YAML field
    means editing `schema.ts` — otherwise the whole deck refuses to load.
 
-6. **Errors surface, never throw.** `load.ts` returns
-   `{ ok: false, title, details }` and `renderError` shows it on screen. Keep
-   that contract.
+6. **Errors surface, never throw, and are located.** `load.ts` returns
+   `{ ok: false, title, issues }` where each `SourceIssue` carries the file,
+   line, column, document path and offending source line; `renderError` shows
+   them on screen and `npm run validate` prints the same thing. Anything that
+   can reject content should report a position, not just a message.
 
 ## Conventions
 

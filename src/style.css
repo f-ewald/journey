@@ -312,11 +312,44 @@ photo-gallery.panel__media {
 
 .error-view__details {
   margin: 1.5rem 0 0;
-  padding-left: 1.25rem;
-  font-family: var(--ui-font-mono, ui-monospace, monospace);
+  padding: 0;
+  list-style: none;
   font-size: 1rem;
-  line-height: 1.7;
+  line-height: 1.6;
+}
+
+.error-view__issue + .error-view__issue {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ui-border, #e2e8f0);
+}
+
+/* The file and line, loudest of the three, because it is what you act on. */
+.error-view__location {
+  margin: 0;
+  font-family: var(--ui-font-mono, ui-monospace, monospace);
+  font-weight: var(--ui-font-weight-semibold, 600);
+  color: var(--ui-text, #0f172a);
+}
+
+.error-view__message {
+  margin: 0.25rem 0 0;
   color: var(--ui-text-muted, #64748b);
+}
+
+.error-view__excerpt {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  font-family: var(--ui-font-mono, ui-monospace, monospace);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ui-text, #0f172a);
+  /* Surface, not surface-muted: the page itself is muted, so a muted block
+     would be invisible against it. */
+  background: var(--ui-surface, #ffffff);
+  border: 1px solid var(--ui-border, #e2e8f0);
+  border-radius: var(--ui-radius, 0.5rem);
 }
 
 @media (prefers-reduced-motion: reduce) {

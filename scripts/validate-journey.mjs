@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFile, access } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { parseCardFile, parseJourney } from "../src/journey/load.ts";
+import { locatePath, parseCardFile, parseJourney } from "../src/journey/load.ts";
 
 const publicDir = new URL("../public/", import.meta.url);
 
@@ -14,7 +14,9 @@ async function main() {
   if (!journeyResult) return;
   const { journey } = journeyResult;
 
-  const documents = [{ name: "journey.yaml", cards: journey.stops, root: "stops" }];
+  const documents = [
+    { name: "journey.yaml", source: journeyResult.source, cards: journey.stops, root: "stops" },
+  ];
 
   for (const [key, path] of [
     ["intro", journey.intro],
@@ -24,17 +26,14 @@ async function main() {
     const name = path.replace(/^\//, "");
     const result = await readAndParse(name, (source) => parseCardFile(source, name));
     if (!result) return;
-    documents.push({ name: `${name} (${key})`, cards: result.cards, root: "cards" });
+    documents.push({ name, source: result.source, cards: result.cards, root: "cards" });
   }
 
   const missing = documents.flatMap((document) => findMissingImages(document));
   const resolved = await Promise.all(missing.map(async (entry) => ((await exists(entry.target)) ? null : entry)));
   const broken = resolved.filter((entry) => entry !== null);
   if (broken.length > 0) {
-    fail(
-      "content references images that do not exist",
-      broken.map((entry) => entry.message),
-    );
+    fail("Content references images that do not exist", broken.map((entry) => entry.issue));
     return;
   }
 
@@ -48,16 +47,18 @@ async function readAndParse(name, parse) {
   try {
     source = await readFile(fileURLToPath(new URL(name, publicDir)), "utf8");
   } catch (error) {
-    fail(`Could not read public/${name}`, [error.message]);
+    fail(`Could not read public/${name}`, [{ file: name, message: error.message }]);
     return null;
   }
 
   const result = parse(source);
   if (!result.ok) {
-    fail(result.title, result.details);
+    fail(result.title, result.issues);
     return null;
   }
-  return result;
+  // The source travels with the result so later checks can locate their own
+  // findings in it, the same way schema violations are located.
+  return { ...result, source };
 }
 
 /**
@@ -65,14 +66,22 @@ async function readAndParse(name, parse) {
  * The dev server answers an unknown path with the SPA fallback HTML and a 200,
  * so a mistyped path yields a silently broken image rather than an error.
  */
-function findMissingImages({ name, cards, root }) {
+function findMissingImages({ name, source, cards, root }) {
   const candidates = [];
   for (const [index, card] of cards.entries()) {
-    for (const image of card.images) {
+    for (const [imageIndex, image] of card.images.entries()) {
       if (!image.src.startsWith("/")) continue;
+      // The shorthand form is a bare string, so `src` only exists as its own
+      // node when the long form was used.
+      const path = [root, index, "images", imageIndex];
       candidates.push({
         target: new URL(`.${image.src}`, publicDir),
-        message: `${name} → ${root}.${index}.images: ${image.src} ("${card.title}")`,
+        issue: {
+          file: name,
+          path: path.join("."),
+          message: `No such file: ${image.src} (in "${card.title}")`,
+          ...locatePath(source, path),
+        },
       });
     }
   }
@@ -88,9 +97,26 @@ async function exists(target) {
   }
 }
 
-function fail(title, details) {
+/**
+ * Prints each issue the way a compiler would — `file:line:col`, the message,
+ * then the offending source line with a caret — so a failure can be acted on
+ * without opening the file to hunt for it.
+ */
+function fail(title, issues) {
   console.error(title);
-  for (const detail of details) console.error(`  - ${detail}`);
+  for (const issue of issues) {
+    const position = issue.line === undefined ? "" : `:${issue.line}:${issue.column ?? 1}`;
+    const where = issue.file ? `${issue.file}${position}` : "";
+    console.error(`\n  ${where}`.trimEnd());
+    console.error(`  ${issue.path ? `${issue.path} — ` : ""}${issue.message}`);
+    if (issue.excerpt) {
+      const gutter = issue.line === undefined ? "" : `${issue.line} | `;
+      console.error(`    ${gutter}${issue.excerpt}`);
+      if (issue.column !== undefined) {
+        console.error(`    ${" ".repeat(gutter.length + issue.column - 1)}^`);
+      }
+    }
+  }
   process.exitCode = 1;
 }
 
