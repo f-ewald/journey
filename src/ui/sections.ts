@@ -43,6 +43,10 @@ function createPanel(stop: JourneyStop, index: number, total: number): HTMLEleme
   heading.textContent = stop.title;
   panel.append(heading);
 
+  // Imagery leads, then the text that explains it.
+  const media = createMedia(stop.images);
+  if (media) panel.append(media);
+
   if (stop.body.trim() !== "") {
     const body = document.createElement("markdown-view");
     body.className = "panel__body";
@@ -50,8 +54,9 @@ function createPanel(stop: JourneyStop, index: number, total: number): HTMLEleme
     panel.append(body);
   }
 
-  const media = createMedia(stop.images);
-  if (media) panel.append(media);
+  // A card carrying both has to fit them together, so the image gives up some
+  // of its height budget rather than pushing the text out of view.
+  if (media && stop.body.trim() !== "") panel.classList.add("panel--media-and-body");
 
   return panel;
 }

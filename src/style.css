@@ -119,6 +119,11 @@ body {
   margin: 1.5rem auto 0;
 }
 
+/* Leaves room for the body text beneath the image. */
+.panel--media-and-body {
+  --media-cap: 34vh;
+}
+
 /*
  * The gallery derives its height from its width via `aspect-ratio`, so capping
  * the width is the only way to cap the height and keep the panel scroll-free.
@@ -129,6 +134,11 @@ photo-gallery.panel__media {
 
 .panel__figure {
   margin: 1.5rem 0 0;
+}
+
+.panel--media-and-body .panel__body {
+  display: block;
+  margin-top: 1.5rem;
 }
 
 .panel__figure img {

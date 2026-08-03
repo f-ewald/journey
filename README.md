@@ -37,7 +37,10 @@ All content lives in `public/journey.yaml`. It is fetched at runtime, so editing
 it needs no rebuild — save the file and reload the page. Run `npm run validate`
 to check it without opening a browser; any problem is reported with its exact
 path (e.g. `stops.2.lat`), and the running app shows the same message on screen
-rather than failing silently.
+rather than failing silently. It also checks that every referenced image exists:
+the dev server answers an unknown path with the app's HTML and a `200`, so a
+mistyped image path otherwise yields a silently broken image rather than an
+error.
 
 ```yaml
 title: California Coast Journey          # optional, also used as the page title
@@ -81,6 +84,9 @@ Put it in `body`, using a YAML block scalar — the `|` keeps your line breaks:
 
       > A blockquote pulls out a line worth dwelling on.
 ```
+
+When a stop has both, the image renders above the body text, and the image's
+height budget shrinks so the text still fits on the card without scrolling.
 
 Everything is indented under `body:` and separated by blank lines, exactly as in
 a markdown file. Headings, ordered and unordered lists, tables, code blocks,
