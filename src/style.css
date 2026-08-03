@@ -39,6 +39,7 @@ body {
 }
 
 .stop {
+  position: relative;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -47,6 +48,142 @@ body {
   padding-right: var(--gutter);
   scroll-snap-align: start;
   scroll-snap-stop: always;
+}
+
+/*
+ * A place-less card talks about no point on the map, so the map recedes behind
+ * frosted glass rather than competing for attention.
+ */
+.stop__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(255 255 255 / 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.stop--card .panel {
+  position: relative;
+}
+
+/* --- timeline -------------------------------------------------------- */
+
+/*
+ * Place-less cards under `layout: timeline`: a line down the middle of the
+ * screen with the year on one side and the card on the other, mirrored on
+ * every second entry. Entries are short enough that several are visible at
+ * once, but each is its own snap point so one keypress advances one card.
+ *
+ * The opaque background is what hides the map, since the map layer is fixed
+ * behind the whole page rather than owned by the stop sections.
+ */
+.timeline-entry {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  /* `minmax(0, …)` rather than a bare `1fr`: an auto-sized track grows to its
+     content's minimum width, which would push the middle column — and with it
+     the node — off the centre of the screen. */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(1.5rem, 3vw, 3rem);
+  min-height: 40vh;
+  padding: 3rem var(--gutter);
+  background: var(--ui-surface-muted, #f1f5f9);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Full-height so consecutive entries join into one unbroken line. */
+.timeline-entry::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 3px;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--ui-primary, #4f46e5) 22%, transparent);
+}
+
+/* Trimmed back to the node at either end of a run, so the line begins and ends
+   on a station rather than bleeding into the map sections around it. */
+.timeline-entry--first::before {
+  top: 50%;
+}
+
+.timeline-entry--last::before {
+  bottom: 50%;
+}
+
+/* The deck's very last card has to be able to reach the top of the viewport,
+   which a section shorter than the viewport otherwise never can. */
+#stops > .timeline-entry:last-child {
+  min-height: 100vh;
+}
+
+.timeline-entry__year,
+.timeline-entry__line,
+.timeline-entry__card {
+  grid-row: 1;
+}
+
+.timeline-entry__year {
+  grid-column: 1;
+  justify-self: end;
+  margin: 0;
+  font-family: var(
+    --ui-font-mono,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace
+  );
+  font-size: clamp(1.5rem, 2.6vw, 2.75rem);
+  font-weight: var(--ui-font-weight-medium, 500);
+  line-height: 1;
+  letter-spacing: var(--ui-tracking-wide, 0.05em);
+  text-align: right;
+  color: var(--ui-text-muted, #64748b);
+}
+
+.timeline-entry__line {
+  position: relative;
+  grid-column: 2;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.timeline-entry__node {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: var(--ui-primary, #4f46e5);
+  /* Punches a hole in the line so the node reads as a station on it. */
+  box-shadow: 0 0 0 6px var(--ui-surface-muted, #f1f5f9);
+}
+
+.timeline-entry__card {
+  grid-column: 3;
+}
+
+.timeline-entry--flipped .timeline-entry__year {
+  grid-column: 3;
+  justify-self: start;
+  text-align: left;
+}
+
+.timeline-entry--flipped .timeline-entry__card {
+  grid-column: 1;
+}
+
+/* Sized by its grid column, and free to grow past the entry's minimum height. */
+.panel--timeline {
+  width: auto;
+  max-height: none;
+  overflow: visible;
+  --media-cap: 26vh;
 }
 
 /* --- panel ----------------------------------------------------------- */
@@ -82,7 +219,13 @@ body {
   align-items: baseline;
   gap: 0.75em;
   margin: 0 0 0.4rem;
-  font-family: var(--ui-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-family: var(
+    --ui-font-mono,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace
+  );
   font-size: clamp(1.05rem, 1.3vw, 1.45rem);
   font-weight: var(--ui-font-weight-medium, 500);
   line-height: 1;
@@ -100,7 +243,11 @@ body {
  */
 .panel__location {
   color: #475569;
-  color: color-mix(in srgb, var(--ui-text, #0f172a) 45%, var(--ui-text-muted, #64748b));
+  color: color-mix(
+    in srgb,
+    var(--ui-text, #0f172a) 45%,
+    var(--ui-text-muted, #64748b)
+  );
 }
 
 .panel__title {
@@ -201,6 +348,12 @@ photo-gallery.panel__media {
 
 .rail__dot:hover {
   opacity: 0.8;
+}
+
+/* Place-less cards sit slightly quieter than the map stops they bracket. */
+.rail__dot--card {
+  width: 0.4rem;
+  height: 0.4rem;
 }
 
 .rail__dot:focus-visible {

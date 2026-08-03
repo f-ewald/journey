@@ -7,6 +7,10 @@ panel fills the right half, a dot rail on the right edge jumps between stops, an
 a dotted line draws progressively along the journey as you scroll — and retracts
 when you scroll back.
 
+Cards that belong to no place can bracket the journey: an intro before the first
+stop and an outro after the last, either over the dimmed map or laid out along a
+timeline.
+
 Built on [`@f-ewald/components`](https://www.npmjs.com/package/@f-ewald/components).
 
 ## Setup
@@ -26,7 +30,7 @@ explicit error instead of a blank map. `.env` is gitignored.
 | Script | Purpose |
 | --- | --- |
 | `npm run dev` | Dev server with hot reload. |
-| `npm run validate` | Parse and schema-check `public/journey.yaml`. |
+| `npm run validate` | Parse and schema-check `public/journey.yaml` and its card files. |
 | `npm run typecheck` | `tsc --noEmit`. |
 | `npm run build` | Typecheck, then build into `dist/`. |
 | `npm run preview` | Serve the production build. |
@@ -48,6 +52,9 @@ mapStyle: mapbox://styles/mapbox/standard # optional
 mapTheme: faded                          # optional: default | faded | monochrome
 defaultZoom: 10                          # optional, used when a stop omits `zoom`
 flyDurationMs: 2570                      # optional, camera flight time; higher is slower
+layout: timeline                         # optional: map | timeline — intro/outro cards only
+intro: intro.yaml                        # optional, cards shown before the stops
+outro: outro.yaml                        # optional, cards shown after the stops
 
 stops:
   - title: Northwind Labs            # required — the place or organisation
@@ -123,6 +130,44 @@ so the map reads politically and geographically rather than as a street map.
 skipped for them automatically. Images are served straight from `public/`; one image
 renders as a plain figure, several become a carousel.
 
+### Intro and outro cards
+
+Some things in a story have no place on a map. Put those in their own files
+under `public/` and name them from `journey.yaml` with `intro:` and `outro:`.
+Both are optional, and scrolling runs straight through in one sequence:
+
+```
+intro cards  →  map stops  →  outro cards
+```
+
+A card file is a `cards:` list using the same fields as a stop, minus `lng`,
+`lat` and `zoom`:
+
+```yaml
+cards:
+  - title: Where it started
+    year: 1994              # optional
+    location: Lisbon      # optional
+    body: |                 # optional markdown, exactly as on a stop
+      Same **markdown** and the same image support.
+    images:                 # optional
+      - /images/start.jpg
+```
+
+`layout` chooses how these cards are presented. It governs the intro and outro
+only — map stops always keep their card-over-the-map treatment, because they are
+already represented by a point on the map.
+
+- **`map`** (the default) — each card sits in the right half exactly like a
+  stop, over a map that recedes behind frosted glass. The camera parks on the
+  first stop for intro cards and the last for outro cards, so entering and
+  leaving the journey needs no extra flight.
+- **`timeline`** — the map is hidden and the cards run down a line in the middle
+  of the screen, the year on one side and the card on the other, alternating
+  every entry. Several are visible at once, but each is its own snap point, so
+  one keypress still advances exactly one card. A card with no `year` simply
+  leaves that side of the line empty.
+
 ## Navigation
 
 - **Scroll** — one stop per viewport, snapped.
@@ -131,8 +176,10 @@ renders as a plain figure, several become a carousel.
   elongated bar.
 - **Full screen** — the button below the rail expands the deck to fill the
   display; press it again or hit Escape to leave.
-- **URL** — the active stop is mirrored as `#stop-3`, so a reload or a shared
-  link resumes at the same place.
+- **URL** — the active card is mirrored as `#intro-1`, `#stop-3` or `#outro-2`,
+  so a reload or a shared link resumes at the same place. Namespacing the hash
+  by kind means an existing `#stop-n` link keeps pointing at the same stop no
+  matter how many intro cards are added in front of it.
 
 Respects `prefers-reduced-motion`: camera moves and rail scrolling become
 instant jumps and the line stops animating.
@@ -149,9 +196,9 @@ token.
 
 | Path | Contents |
 | --- | --- |
-| `src/journey/` | YAML schema (zod) and the runtime loader. |
+| `src/journey/` | YAML schema (zod), the runtime loader, and the intro/stops/outro sequence. |
 | `src/map/` | Mapbox controller (camera, markers, line) and its pure geometry helpers. |
 | `src/ui/` | Sections and panels, the dot rail, the fullscreen toggle, and the error surface. |
-| `src/scroll.ts` | The single active-stop and line-progress signal everything else consumes. |
-| `src/hash.ts` | `#stop-n` deep linking. |
+| `src/scroll.ts` | The single active-card and line-progress signal everything else consumes. |
+| `src/hash.ts` | `#intro-n` / `#stop-n` / `#outro-n` deep linking. |
 | `scripts/` | `validate-journey.mjs`, which reuses the same schema as the app. |

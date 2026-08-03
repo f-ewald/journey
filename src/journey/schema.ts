@@ -6,6 +6,8 @@ export const DEFAULT_MAP_THEME = "faded";
 export const DEFAULT_ZOOM = 11;
 /** Camera flight time between stops, in milliseconds. Higher is slower. */
 export const DEFAULT_FLY_DURATION_MS = 2570;
+/** How place-less intro and outro cards are presented when unspecified. */
+export const DEFAULT_LAYOUT = "map";
 
 const imageObjectSchema = z.strictObject({
   src: z.string().min(1),
@@ -27,29 +29,53 @@ const yearSchema = z
   .union([z.string().min(1), z.number()])
   .transform((value) => String(value));
 
-const stopSchema = z.strictObject({
+/** Fields every card carries, whether or not it is pinned to a place. */
+const cardFields = {
   title: z.string().min(1),
   year: yearSchema.nullish(),
   /** Geographic context for the title, e.g. "Porto, CA". */
   location: z.string().min(1).nullish(),
+  body: z.string().default(""),
+  images: z.array(imageSchema).default([]),
+};
+
+/** A card with no coordinates, used for the intro and outro sequences. */
+const placelessCardSchema = z.strictObject({ ...cardFields });
+
+const stopSchema = z.strictObject({
+  ...cardFields,
   lng: z.number().min(-180).max(180),
   lat: z.number().min(-90).max(90),
   zoom: z.number().min(0).max(22).optional(),
-  body: z.string().default(""),
-  images: z.array(imageSchema).default([]),
+});
+
+/** Schema for `intro.yaml` and `outro.yaml`. */
+export const cardFileSchema = z.strictObject({
+  cards: z.array(placelessCardSchema).min(1),
 });
 
 export const journeySchema = z.strictObject({
   title: z.string().min(1).default("Map Journey"),
   mapStyle: z.string().min(1).default(DEFAULT_MAP_STYLE),
-  mapTheme: z.enum(["default", "faded", "monochrome"]).default(DEFAULT_MAP_THEME),
+  mapTheme: z
+    .enum(["default", "faded", "monochrome"])
+    .default(DEFAULT_MAP_THEME),
   defaultZoom: z.number().min(0).max(22).default(DEFAULT_ZOOM),
   flyDurationMs: z.number().min(0).max(20000).default(DEFAULT_FLY_DURATION_MS),
+  /** How the place-less intro and outro cards are presented. */
+  layout: z.enum(["map", "timeline"]).default(DEFAULT_LAYOUT),
+  /** Path to a card file shown before the stops, relative to the site root. */
+  intro: z.string().min(1).nullish(),
+  /** Path to a card file shown after the stops, relative to the site root. */
+  outro: z.string().min(1).nullish(),
   stops: z.array(stopSchema).min(1),
 });
 
 export type JourneyImage = z.infer<typeof imageSchema>;
+export type PlacelessCard = z.infer<typeof placelessCardSchema>;
 export type JourneyStop = z.infer<typeof stopSchema>;
+export type JourneyCard = PlacelessCard | JourneyStop;
+export type CardFile = z.infer<typeof cardFileSchema>;
 export type Journey = z.infer<typeof journeySchema>;
 
 /**

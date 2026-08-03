@@ -3,12 +3,18 @@ import "@f-ewald/components/mapbox-map.js";
 import "./style.css";
 
 import type { Map as MapboxMap } from "mapbox-gl";
-import { loadJourney } from "./journey/load.ts";
-import type { Journey } from "./journey/schema.ts";
+import { loadDeck } from "./journey/load.ts";
+import type { Journey, PlacelessCard } from "./journey/schema.ts";
 import { zoomFor } from "./journey/schema.ts";
+import {
+  buildSequence,
+  cameraStopFor,
+  lineSegmentFor,
+  type Sequence,
+} from "./journey/sequence.ts";
 import { MapController } from "./map/controller.ts";
 import { prefersReducedMotion } from "./motion.ts";
-import { indexFromHash, replaceHash } from "./hash.ts";
+import { positionFromHash, replaceHash } from "./hash.ts";
 import { observeScroll, type ScrollState } from "./scroll.ts";
 import { renderError } from "./ui/error-view.ts";
 import { renderFullscreenButton } from "./ui/fullscreen.ts";
@@ -28,7 +34,7 @@ if ("scrollRestoration" in window.history) {
 async function main(): Promise<void> {
   const app = requireElement("#app");
 
-  const result = await loadJourney(JOURNEY_URL);
+  const result = await loadDeck(JOURNEY_URL);
   if (!result.ok) {
     renderError(app, result.title, result.details);
     return;
@@ -42,70 +48,95 @@ async function main(): Promise<void> {
     return;
   }
 
-  start(result.journey, token);
+  start(result.journey, result.intro, result.outro, token);
 }
 
-function start(journey: Journey, token: string): void {
+function start(
+  journey: Journey,
+  intro: PlacelessCard[],
+  outro: PlacelessCard[],
+  token: string,
+): void {
   document.title = journey.title;
 
-  const initial = indexFromHash(journey.stops.length) ?? 0;
+  const sequence = buildSequence(journey, intro, outro);
+  const initial = positionFromHash(sequence) ?? 0;
   const controller = new MapController(journey);
-  mountMap(journey, token, initial);
+  mountMap(journey, token, cameraStopFor(sequence, initial));
 
-  const sections = renderSections(requireElement("#stops"), journey);
-  const rail = renderRail(requireElement("#rail"), journey, (index) =>
-    scrollToStop(sections, index),
+  const sections = renderSections(requireElement("#stops"), sequence, journey);
+  const rail = renderRail(requireElement("#rail"), sequence, (position) =>
+    scrollToSection(sections, position),
   );
 
-  if (initial > 0) sections[initial].scrollIntoView({ behavior: "auto", block: "start" });
+  if (initial > 0) pinTo(sections[initial], "auto");
 
   let latest: ScrollState | null = null;
   let lastActive = -1;
-  let framed = false;
+  let lastStop = -1;
 
-  observeScroll(
-    sections,
-    (state) => {
-      latest = state;
-      controller.drawLine(state.segmentIndex, state.segmentProgress);
-      if (state.activeIndex === lastActive) return;
+  observeScroll(sections, (state) => {
+    latest = state;
+    drawLine(controller, sequence, state);
+    if (state.activeIndex === lastActive) return;
 
-      lastActive = state.activeIndex;
-      controller.focus(state.activeIndex, { animate: framed });
-      framed = true;
-      rail.setActive(state.activeIndex);
-      replaceHash(state.activeIndex);
-    },
-    initial,
-  );
+    lastActive = state.activeIndex;
+    // Place-less cards park the camera on the nearest stop, so the flight is
+    // only worth triggering when the stop underneath actually changes.
+    const stop = cameraStopFor(sequence, state.activeIndex);
+    if (stop !== lastStop) {
+      controller.focus(stop, { animate: lastStop !== -1 });
+      lastStop = stop;
+    }
+    rail.setActive(state.activeIndex);
+    replaceHash(sequence.entries[state.activeIndex]);
+  });
 
   renderFullscreenButton(requireElement("#fullscreen"), () =>
     realign(sections, lastActive, controller),
   );
 
-  bindMapReady(controller, () => latest);
+  bindMapReady(controller, sequence, () => latest);
   bindResize(controller);
 }
 
+/** Advances the journey line, ignoring progress made outside the stop range. */
+function drawLine(
+  controller: MapController,
+  sequence: Sequence,
+  state: ScrollState,
+): void {
+  const segment = lineSegmentFor(
+    sequence,
+    state.segmentIndex,
+    state.segmentProgress,
+  );
+  controller.drawLine(segment.segmentIndex, segment.segmentProgress);
+}
+
 /**
- * Re-pins the deck to the active stop after the viewport height changes, since
+ * Re-pins the deck to the active card after the viewport height changes, since
  * every section is sized in `vh` and the scroll offset would otherwise land
- * between two stops. Deferred two frames so the new layout is settled first.
+ * between two cards. Deferred two frames so the new layout is settled first.
  */
-function realign(sections: HTMLElement[], index: number, controller: MapController): void {
-  const section = sections[index];
+function realign(
+  sections: HTMLElement[],
+  position: number,
+  controller: MapController,
+): void {
+  const section = sections[position];
   if (!section) return;
   requestAnimationFrame(() =>
     requestAnimationFrame(() => {
-      section.scrollIntoView({ behavior: "auto", block: "start" });
+      pinTo(section, "auto");
       controller.reframe();
     }),
   );
 }
 
-/** Constructs the map already centred on `initialIndex`, avoiding a first-stop flash. */
-function mountMap(journey: Journey, token: string, initialIndex: number): void {
-  const stop = journey.stops[initialIndex] ?? journey.stops[0];
+/** Constructs the map already centred on `initialStop`, avoiding a first-stop flash. */
+function mountMap(journey: Journey, token: string, initialStop: number): void {
+  const stop = journey.stops[initialStop] ?? journey.stops[0];
   const element = document.createElement("mapbox-map");
   element.accessToken = token;
   element.styleUrl = journey.mapStyle;
@@ -118,7 +149,11 @@ function mountMap(journey: Journey, token: string, initialIndex: number): void {
  * Applies whatever scroll state already exists once the map — or a reloaded
  * style — is ready, since markers and the line cannot be drawn before then.
  */
-function bindMapReady(controller: MapController, getState: () => ScrollState | null): void {
+function bindMapReady(
+  controller: MapController,
+  sequence: Sequence,
+  getState: () => ScrollState | null,
+): void {
   const element = requireElement("#map-layer").querySelector("mapbox-map");
   if (!element) return;
 
@@ -131,12 +166,18 @@ function bindMapReady(controller: MapController, getState: () => ScrollState | n
 
     const state = getState();
     if (!state) return;
-    controller.focus(state.activeIndex, { animate: false });
-    controller.drawLine(state.segmentIndex, state.segmentProgress);
+    controller.focus(cameraStopFor(sequence, state.activeIndex), {
+      animate: false,
+    });
+    drawLine(controller, sequence, state);
   };
 
-  element.addEventListener("map-ready", (event) => apply(mapFrom(event), false));
-  element.addEventListener("map-style-reloaded", (event) => apply(mapFrom(event), true));
+  element.addEventListener("map-ready", (event) =>
+    apply(mapFrom(event), false),
+  );
+  element.addEventListener("map-style-reloaded", (event) =>
+    apply(mapFrom(event), true),
+  );
 }
 
 function bindResize(controller: MapController): void {
@@ -147,13 +188,15 @@ function bindResize(controller: MapController): void {
   });
 }
 
-function scrollToStop(sections: HTMLElement[], index: number): void {
-  const section = sections[index];
+function scrollToSection(sections: HTMLElement[], position: number): void {
+  const section = sections[position];
   if (!section) return;
-  section.scrollIntoView({
-    behavior: prefersReducedMotion() ? "auto" : "smooth",
-    block: "start",
-  });
+  pinTo(section, prefersReducedMotion() ? "auto" : "smooth");
+}
+
+/** Every section snaps to its top edge, so programmatic scrolls target it too. */
+function pinTo(section: HTMLElement, behavior: ScrollBehavior): void {
+  section.scrollIntoView({ behavior, block: "start" });
 }
 
 function mapFrom(event: Event): MapboxMap {

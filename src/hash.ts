@@ -1,29 +1,38 @@
-const PREFIX = "stop-";
+import type { Sequence, SequenceEntry } from "./journey/sequence.ts";
 
-/** Hash for a zero-based stop index, e.g. `#stop-3` for index 2. */
-export function hashFor(index: number): string {
-  return `#${PREFIX}${index + 1}`;
+/**
+ * Hash for a sequence entry, namespaced by kind — `#intro-1`, `#stop-3`,
+ * `#outro-2`. Namespacing keeps existing `#stop-n` links pointing at the same
+ * stop no matter how many intro cards are added in front of it.
+ */
+export function hashFor(entry: SequenceEntry): string {
+  return `#${entry.kind}-${entry.ordinal + 1}`;
 }
 
 /**
- * Zero-based stop index encoded in the current URL hash, or null when the hash
- * is absent, malformed, or outside `stopCount`.
+ * Sequence position encoded in the current URL hash, or null when the hash is
+ * absent, malformed, or names an entry the deck does not have.
  */
-export function indexFromHash(stopCount: number): number | null {
-  const match = /^#stop-(\d+)$/.exec(window.location.hash);
+export function positionFromHash(sequence: Sequence): number | null {
+  const match = /^#(intro|stop|outro)-(\d+)$/.exec(window.location.hash);
   if (!match) return null;
 
-  const index = Number(match[1]) - 1;
-  if (!Number.isInteger(index) || index < 0 || index >= stopCount) return null;
-  return index;
+  const kind = match[1] as SequenceEntry["kind"];
+  const ordinal = Number(match[2]) - 1;
+  if (!Number.isInteger(ordinal) || ordinal < 0) return null;
+
+  const position = sequence.entries.findIndex(
+    (entry) => entry.kind === kind && entry.ordinal === ordinal,
+  );
+  return position === -1 ? null : position;
 }
 
 /**
  * Rewrites the hash without pushing a history entry, so the back button still
- * leaves the deck instead of stepping through every stop.
+ * leaves the deck instead of stepping through every card.
  */
-export function replaceHash(index: number): void {
-  const next = hashFor(index);
+export function replaceHash(entry: SequenceEntry): void {
+  const next = hashFor(entry);
   if (window.location.hash === next) return;
   window.history.replaceState(null, "", next);
 }
