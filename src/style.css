@@ -178,14 +178,6 @@ body {
   grid-column: 1;
 }
 
-/* Sized by its grid column, and free to grow past the entry's minimum height. */
-.panel--timeline {
-  width: auto;
-  max-height: none;
-  overflow: visible;
-  --media-cap: 26vh;
-}
-
 /* --- panel ----------------------------------------------------------- */
 
 .panel {
@@ -302,6 +294,15 @@ photo-gallery.panel__media {
   margin-top: 0.75rem;
   font-size: 1.05rem;
   color: var(--ui-text-muted, #64748b);
+}
+
+/* Sized by its grid column instead of the fixed right-half width. Declared
+   after `.panel` so it wins: both selectors have the same specificity. */
+.panel--timeline {
+  width: auto;
+  /* Entries are meant to be short enough that several fit on screen, so
+     imagery gets a tighter budget than it does on a full-viewport stop. */
+  --media-cap: 26vh;
 }
 
 /* --- dot rail -------------------------------------------------------- */
