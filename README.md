@@ -194,6 +194,12 @@ arrangement. There is also no deployment setup: a static deploy would embed the
 Mapbox token in the client bundle, which needs a separate URL-restricted public
 token.
 
+## Working on the code
+
+Agent guidance, architecture and the invariants that are easy to break are in
+[`CLAUDE.md`](./CLAUDE.md); traps that have already cost real debugging time
+are in [`docs/gotchas.md`](./docs/gotchas.md).
+
 ## Layout of the source
 
 | Path | Contents |
