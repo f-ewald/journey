@@ -1,7 +1,10 @@
 import "@f-ewald/components/tokens.css";
+import "@f-ewald/components/fullscreen-button.js";
 import "@f-ewald/components/mapbox-map.js";
+import "@f-ewald/components/scroll-dots.js";
 import "./style.css";
 
+import type { DotSelectDetail, ScrollDotsItem } from "@f-ewald/components";
 import type { Map as MapboxMap } from "mapbox-gl";
 import { loadDeck } from "./journey/load.ts";
 import type { Journey, PlacelessCard } from "./journey/schema.ts";
@@ -11,14 +14,13 @@ import {
   cameraStopFor,
   lineSegmentFor,
   type Sequence,
+  type SequenceEntry,
 } from "./journey/sequence.ts";
 import { MapController } from "./map/controller.ts";
 import { prefersReducedMotion } from "./motion.ts";
 import { positionFromHash, replaceHash } from "./hash.ts";
 import { observeScroll, type ScrollState } from "./scroll.ts";
 import { renderError } from "./ui/error-view.ts";
-import { renderFullscreenButton } from "./ui/fullscreen.ts";
-import { renderRail } from "./ui/rail.ts";
 import { renderSections } from "./ui/sections.ts";
 
 const JOURNEY_URL = "journey.yaml";
@@ -48,15 +50,15 @@ async function main(): Promise<void> {
     return;
   }
 
-  start(result.journey, result.intro, result.outro, token);
+  await start(result.journey, result.intro, result.outro, token);
 }
 
-function start(
+async function start(
   journey: Journey,
   intro: PlacelessCard[],
   outro: PlacelessCard[],
   token: string,
-): void {
+): Promise<void> {
   document.title = journey.title;
 
   const sequence = buildSequence(journey, intro, outro);
@@ -65,11 +67,11 @@ function start(
   mountMap(journey, token, cameraStopFor(sequence, initial));
 
   const sections = renderSections(requireElement("#stops"), sequence, journey);
-  const rail = renderRail(requireElement("#rail"), sequence, (position) =>
+  const rail = renderRail(sequence, (position) =>
     scrollToSection(sections, position),
   );
 
-  if (initial > 0) pinTo(sections[initial], "auto");
+  await settle(sections, initial);
 
   let latest: ScrollState | null = null;
   let lastActive = -1;
@@ -88,16 +90,61 @@ function start(
       controller.focus(stop, { animate: lastStop !== -1 });
       lastStop = stop;
     }
-    rail.setActive(state.activeIndex);
+    rail.active = state.activeIndex;
     replaceHash(sequence.entries[state.activeIndex]);
   });
 
-  renderFullscreenButton(requireElement("#fullscreen"), () =>
-    realign(sections, lastActive, controller),
-  );
+  renderFullscreenButton(() => realign(sections, lastActive, controller));
 
   bindMapReady(controller, sequence, () => latest);
   bindResize(controller);
+}
+
+/**
+ * Waits for the timeline containers to lay out, then pins the deck to its
+ * starting card.
+ *
+ * A container renders its slot asynchronously, so until it does its entries
+ * have no box and are not scroll-snap areas. The browser latches its snap
+ * target onto the first section that does have one — the first map stop — and
+ * then follows it down the page as the entries appear, landing the deck
+ * several cards in. Pinning explicitly afterwards is what settles it, so this
+ * runs even for card zero.
+ */
+async function settle(sections: HTMLElement[], initial: number): Promise<void> {
+  const containers = [...document.querySelectorAll("timeline-container")];
+  await Promise.all(containers.map((container) => container.updateComplete));
+  pinTo(sections[initial], "auto");
+}
+
+/** Mounts the dot rail. It is controlled, so `active` is written on every change. */
+function renderRail(sequence: Sequence, onSelect: (position: number) => void) {
+  const rail = document.createElement("scroll-dots");
+  rail.label = "Journey cards";
+  rail.items = sequence.entries.map(dotFor);
+  rail.addEventListener("dot-select", (event) => {
+    onSelect((event as CustomEvent<DotSelectDetail>).detail.index);
+  });
+  requireElement("#rail").replaceChildren(rail);
+  return rail;
+}
+
+/** Place-less cards read as subordinate to the map stops they bracket. */
+function dotFor(entry: SequenceEntry): ScrollDotsItem {
+  if (entry.kind === "stop")
+    return `Stop ${entry.ordinal + 1}: ${entry.card.title}`;
+  return { label: entry.card.title, muted: true };
+}
+
+/**
+ * Mounts the fullscreen toggle. `onChange` re-pins the deck, since every
+ * section is sized in `vh` and the viewport height changes on the way in and
+ * out — which would otherwise leave the scroll between two cards.
+ */
+function renderFullscreenButton(onChange: () => void): void {
+  const button = document.createElement("fullscreen-button");
+  button.addEventListener("fullscreen-change", onChange);
+  requireElement("#fullscreen").replaceChildren(button);
 }
 
 /** Advances the journey line, ignoring progress made outside the stop range. */

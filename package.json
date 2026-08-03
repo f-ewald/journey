@@ -15,7 +15,7 @@
     "vite": "^8.2.0"
   },
   "dependencies": {
-    "@f-ewald/components": "^1.27.3",
+    "@f-ewald/components": "^1.29.0",
     "mapbox-gl": "^3.27.0",
     "yaml": "^2.9.0",
     "zod": "^4.4.3"

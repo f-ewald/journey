@@ -166,7 +166,9 @@ already represented by a point on the map.
   of the screen, the year on one side and the card on the other, alternating
   every entry. Several are visible at once, but each is its own snap point, so
   one keypress still advances exactly one card. A card with no `year` simply
-  leaves that side of the line empty.
+  leaves that side of the line empty. Drawn by `timeline-container`'s
+  `alternating` layout, one container per run, so the line caps at each run's
+  own end dots.
 
 ## Navigation
 
@@ -198,7 +200,7 @@ token.
 | --- | --- |
 | `src/journey/` | YAML schema (zod), the runtime loader, and the intro/stops/outro sequence. |
 | `src/map/` | Mapbox controller (camera, markers, line) and its pure geometry helpers. |
-| `src/ui/` | Sections and panels, the dot rail, the fullscreen toggle, and the error surface. |
+| `src/ui/` | Sections and panels, and the error surface. The dot rail, the fullscreen toggle and the timeline come from `@f-ewald/components`. |
 | `src/scroll.ts` | The single active-card and line-progress signal everything else consumes. |
 | `src/hash.ts` | `#intro-n` / `#stop-n` / `#outro-n` deep linking. |
 | `scripts/` | `validate-journey.mjs`, which reuses the same schema as the app. |

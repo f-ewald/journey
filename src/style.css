@@ -69,69 +69,37 @@ body {
 /* --- timeline -------------------------------------------------------- */
 
 /*
- * Place-less cards under `layout: timeline`: a line down the middle of the
- * screen with the year on one side and the card on the other, mirrored on
- * every second entry. Entries are short enough that several are visible at
- * once, but each is its own snap point so one keypress advances one card.
+ * Place-less cards under `layout: timeline`, rendered by the shared
+ * timeline-container/timeline-entry pair. One container per run, since map
+ * stops sit between the intro and outro runs. The opaque background is what
+ * hides the map, since the map layer is fixed behind the whole page rather
+ * than owned by the sections.
  *
- * The opaque background is what hides the map, since the map layer is fixed
- * behind the whole page rather than owned by the stop sections.
+ * Symmetric padding matters: the component centres its line on its own content
+ * box, so an asymmetric gutter would pull the line off the middle of the
+ * screen.
  */
-.timeline-entry {
-  position: relative;
-  box-sizing: border-box;
-  display: grid;
-  /* `minmax(0, …)` rather than a bare `1fr`: an auto-sized track grows to its
-     content's minimum width, which would push the middle column — and with it
-     the node — off the centre of the screen. */
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  column-gap: clamp(1.5rem, 3vw, 3rem);
-  min-height: 40vh;
-  padding: 3rem var(--gutter);
+#stops timeline-container {
+  padding: 0 var(--gutter);
   background: var(--ui-surface-muted, #f1f5f9);
+}
+
+/* No `display` here: a light-DOM rule beats the component's own `:host`
+   declaration, and overriding it would stop the entry stretching its line to
+   the height set below. */
+#stops timeline-entry {
+  min-height: 40vh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
 
-/* Full-height so consecutive entries join into one unbroken line. */
-.timeline-entry::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 3px;
-  transform: translateX(-50%);
-  background: color-mix(in srgb, var(--ui-primary, #4f46e5) 22%, transparent);
-}
-
-/* Trimmed back to the node at either end of a run, so the line begins and ends
-   on a station rather than bleeding into the map sections around it. */
-.timeline-entry--first::before {
-  top: 50%;
-}
-
-.timeline-entry--last::before {
-  bottom: 50%;
-}
-
 /* The deck's very last card has to be able to reach the top of the viewport,
    which a section shorter than the viewport otherwise never can. */
-#stops > .timeline-entry:last-child {
+#stops > timeline-container:last-child timeline-entry:last-child {
   min-height: 100vh;
 }
 
-.timeline-entry__year,
-.timeline-entry__line,
-.timeline-entry__card {
-  grid-row: 1;
-}
-
-.timeline-entry__year {
-  grid-column: 1;
-  justify-self: end;
-  margin: 0;
+.timeline-year {
   font-family: var(
     --ui-font-mono,
     ui-monospace,
@@ -143,39 +111,7 @@ body {
   font-weight: var(--ui-font-weight-medium, 500);
   line-height: 1;
   letter-spacing: var(--ui-tracking-wide, 0.05em);
-  text-align: right;
   color: var(--ui-text-muted, #64748b);
-}
-
-.timeline-entry__line {
-  position: relative;
-  grid-column: 2;
-  z-index: 1;
-  display: flex;
-  justify-content: center;
-}
-
-.timeline-entry__node {
-  width: 1.15rem;
-  height: 1.15rem;
-  border-radius: 999px;
-  background: var(--ui-primary, #4f46e5);
-  /* Punches a hole in the line so the node reads as a station on it. */
-  box-shadow: 0 0 0 6px var(--ui-surface-muted, #f1f5f9);
-}
-
-.timeline-entry__card {
-  grid-column: 3;
-}
-
-.timeline-entry--flipped .timeline-entry__year {
-  grid-column: 3;
-  justify-self: start;
-  text-align: left;
-}
-
-.timeline-entry--flipped .timeline-entry__card {
-  grid-column: 1;
 }
 
 /* --- panel ----------------------------------------------------------- */
@@ -307,12 +243,6 @@ photo-gallery.panel__media {
 
 /* --- dot rail -------------------------------------------------------- */
 
-/*
- * `will-change` promotes the rail to its own compositor layer. Without it the
- * browser repaints this fixed element on the main thread on top of the map's
- * WebGL canvas, which flickers and renders the dots with squared-off edges
- * while a scroll and a camera flight are competing for that thread.
- */
 #rail {
   position: fixed;
   top: 50%;
@@ -322,50 +252,6 @@ photo-gallery.panel__media {
   justify-content: center;
   width: var(--gutter);
   transform: translateY(-50%);
-  will-change: transform;
-  backface-visibility: hidden;
-}
-
-.rail {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.7rem;
-}
-
-.rail__dot {
-  width: 0.625rem;
-  height: 0.625rem;
-  padding: 0;
-  border: none;
-  border-radius: 999px;
-  background: var(--ui-text-muted, #64748b);
-  opacity: 0.45;
-  cursor: pointer;
-  transition:
-    opacity 0.25s ease,
-    background-color 0.25s ease;
-}
-
-.rail__dot:hover {
-  opacity: 0.8;
-}
-
-/* Place-less cards sit slightly quieter than the map stops they bracket. */
-.rail__dot--card {
-  width: 0.4rem;
-  height: 0.4rem;
-}
-
-.rail__dot:focus-visible {
-  outline: 2px solid var(--ui-focus-ring, #4f46e5);
-  outline-offset: 3px;
-}
-
-.rail__dot--active {
-  height: 2.25rem;
-  background: var(--ui-primary, #4f46e5);
-  opacity: 1;
 }
 
 /* --- fullscreen toggle ----------------------------------------------- */
@@ -383,17 +269,16 @@ photo-gallery.panel__media {
   display: flex;
   justify-content: center;
   width: var(--gutter);
-  will-change: transform;
-  backface-visibility: hidden;
 }
 
-.fullscreen-toggle {
+/* Recessive during a talk; only comes forward when reached for. */
+#fullscreen fullscreen-button {
   opacity: 0.55;
   transition: opacity 0.2s ease;
 }
 
-.fullscreen-toggle:hover,
-.fullscreen-toggle:focus-within {
+#fullscreen fullscreen-button:hover,
+#fullscreen fullscreen-button:focus-within {
   opacity: 1;
 }
 
@@ -416,8 +301,7 @@ photo-gallery.panel__media {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rail__dot,
-  .fullscreen-toggle {
+  #fullscreen fullscreen-button {
     transition: none;
   }
 }

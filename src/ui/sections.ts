@@ -1,4 +1,6 @@
 import "@f-ewald/components/markdown-view.js";
+import "@f-ewald/components/timeline-container.js";
+import "@f-ewald/components/timeline-entry.js";
 import "@f-ewald/components/photo-gallery.js";
 import "@f-ewald/components/gallery-item.js";
 import type { Journey, JourneyCard, JourneyImage } from "../journey/schema.ts";
@@ -28,8 +30,36 @@ export function renderSections(
     createSection(entry, position, sequence, journey),
   );
 
-  host.replaceChildren(...sections);
+  host.replaceChildren(...groupTimelineRuns(sections));
   return sections;
+}
+
+/**
+ * Wraps each run of consecutive timeline entries in its own container. The two
+ * runs are not siblings — map stops sit between them — so one container per run
+ * is what makes the line cap at each run's own end dots, and what keeps the
+ * alternating sides counting from the start of each run.
+ */
+function groupTimelineRuns(sections: HTMLElement[]): HTMLElement[] {
+  const grouped: HTMLElement[] = [];
+  let run: HTMLElement | null = null;
+
+  for (const section of sections) {
+    if (section.tagName !== "TIMELINE-ENTRY") {
+      run = null;
+      grouped.push(section);
+      continue;
+    }
+    if (!run) {
+      const container = document.createElement("timeline-container");
+      container.layout = "alternating";
+      run = container;
+      grouped.push(container);
+    }
+    run.append(section);
+  }
+
+  return grouped;
 }
 
 function createSection(
@@ -42,23 +72,11 @@ function createSection(
     entry.kind === "stop"
       ? createStopSection(entry, sequence)
       : journey.layout === "timeline"
-        ? createTimelineSection(entry, edgesOf(sequence, position))
+        ? createTimelineSection(entry)
         : createCardSection(entry);
 
   section.dataset.position = String(position);
   return section;
-}
-
-/** Whether a position starts or ends a run of consecutive same-kind entries. */
-function edgesOf(
-  sequence: Sequence,
-  position: number,
-): { first: boolean; last: boolean } {
-  const kind = sequence.entries[position].kind;
-  return {
-    first: sequence.entries[position - 1]?.kind !== kind,
-    last: sequence.entries[position + 1]?.kind !== kind,
-  };
 }
 
 /** A map stop: card in the right half over the live map. */
@@ -101,36 +119,23 @@ function createCardSection(entry: SequenceEntry): HTMLElement {
  * A place-less card in `timeline` layout: a central line with the year on one
  * side and the card on the other, alternating so consecutive entries mirror.
  */
-function createTimelineSection(
-  entry: SequenceEntry,
-  edges: { first: boolean; last: boolean },
-): HTMLElement {
-  const section = document.createElement("section");
-  section.classList.add("timeline-entry");
-  if (entry.ordinal % 2 === 1) section.classList.add("timeline-entry--flipped");
-  // The line is drawn per entry, so the ends of a run trim it back to their
-  // node instead of running off into the map sections either side.
-  if (edges.first) section.classList.add("timeline-entry--first");
-  if (edges.last) section.classList.add("timeline-entry--last");
+function createTimelineSection(entry: SequenceEntry): HTMLElement {
+  const section = document.createElement("timeline-entry");
   section.setAttribute("aria-label", entry.card.title);
 
-  const year = document.createElement("p");
-  year.className = "timeline-entry__year";
-  if (entry.card.year) year.textContent = entry.card.year;
+  // Slotted rather than set as the `label` property, because the year needs
+  // typography this app owns and the property renders in the shadow DOM.
+  if (entry.card.year) {
+    const year = document.createElement("span");
+    year.slot = "label";
+    year.className = "timeline-year";
+    year.textContent = entry.card.year;
+    section.append(year);
+  }
 
-  const line = document.createElement("div");
-  line.className = "timeline-entry__line";
-  const node = document.createElement("span");
-  node.className = "timeline-entry__node";
-  line.append(node);
-
-  const card = document.createElement("div");
-  card.className = "timeline-entry__card";
-  card.append(
+  section.append(
     createPanel(entry.card, { omitYear: true, modifier: "panel--timeline" }),
   );
-
-  section.append(year, line, card);
   return section;
 }
 
