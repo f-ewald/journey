@@ -8,6 +8,8 @@ export const DEFAULT_ZOOM = 11;
 export const DEFAULT_FLY_DURATION_MS = 2570;
 /** How place-less intro and outro cards are presented when unspecified. */
 export const DEFAULT_LAYOUT = "map";
+/** Fallback deck title, used before the YAML loads and when it omits one. */
+export const DEFAULT_TITLE = "Journey";
 
 const imageObjectSchema = z.strictObject({
   src: z.string().min(1),
@@ -49,13 +51,21 @@ const stopSchema = z.strictObject({
   zoom: z.number().min(0).max(22).optional(),
 });
 
-/** Schema for `intro.yaml` and `outro.yaml`. */
+/**
+ * Schema for `intro.yaml` and `outro.yaml`. An empty list is valid and simply
+ * contributes no cards, so a deck can open or close straight on the map without
+ * having to delete the file or unwire it from `journey.yaml`. `cards:` written
+ * with no value at all reads as empty too.
+ */
 export const cardFileSchema = z.strictObject({
-  cards: z.array(placelessCardSchema).min(1),
+  cards: z
+    .array(placelessCardSchema)
+    .nullish()
+    .transform((cards) => cards ?? []),
 });
 
 export const journeySchema = z.strictObject({
-  title: z.string().min(1).default("Map Journey"),
+  title: z.string().min(1).default(DEFAULT_TITLE),
   mapStyle: z.string().min(1).default(DEFAULT_MAP_STYLE),
   mapTheme: z
     .enum(["default", "faded", "monochrome"])
@@ -68,6 +78,8 @@ export const journeySchema = z.strictObject({
   intro: z.string().min(1).nullish(),
   /** Path to a card file shown after the stops, relative to the site root. */
   outro: z.string().min(1).nullish(),
+  /** Gives each timeline card the whole viewport instead of fitting several on screen. */
+  singleCardPerScreen: z.boolean().default(false),
   stops: z.array(stopSchema).min(1),
 });
 

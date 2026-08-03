@@ -30,7 +30,7 @@ export function renderSections(
     createSection(entry, position, sequence, journey),
   );
 
-  host.replaceChildren(...groupTimelineRuns(sections));
+  host.replaceChildren(...groupTimelineRuns(sections, journey));
   return sections;
 }
 
@@ -40,7 +40,10 @@ export function renderSections(
  * is what makes the line cap at each run's own end dots, and what keeps the
  * alternating sides counting from the start of each run.
  */
-function groupTimelineRuns(sections: HTMLElement[]): HTMLElement[] {
+function groupTimelineRuns(
+  sections: HTMLElement[],
+  journey: Journey,
+): HTMLElement[] {
   const grouped: HTMLElement[] = [];
   let run: HTMLElement | null = null;
 
@@ -53,6 +56,8 @@ function groupTimelineRuns(sections: HTMLElement[]): HTMLElement[] {
     if (!run) {
       const container = document.createElement("timeline-container");
       container.layout = "alternating";
+      if (journey.singleCardPerScreen)
+        container.classList.add("timeline--single");
       run = container;
       grouped.push(container);
     }

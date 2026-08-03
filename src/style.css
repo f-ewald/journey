@@ -93,10 +93,29 @@ body {
   scroll-snap-stop: always;
 }
 
-/* The deck's very last card has to be able to reach the top of the viewport,
-   which a section shorter than the viewport otherwise never can. */
-#stops > timeline-container:last-child timeline-entry:last-child {
+/*
+ * The deck's very last card has to be able to reach the top of the viewport,
+ * which a section shorter than the viewport otherwise never can — the document
+ * simply ends. Trailing space inside the container does it without making that
+ * one card taller than its siblings, and inherits the container's background so
+ * the map stays hidden. 60vh always suffices: an entry is at least 40vh, and a
+ * taller one needs less room after it.
+ */
+#stops > timeline-container:last-child::after {
+  content: "";
+  display: block;
+  height: 60vh;
+}
+
+/* `singleCardPerScreen`: one card fills the viewport, matching the map stops
+   instead of fitting several timeline entries on screen at once. Each card
+   already reaches the top, so the trailing space is not needed. */
+#stops timeline-container.timeline--single timeline-entry {
   min-height: 100vh;
+}
+
+#stops > timeline-container.timeline--single:last-child::after {
+  display: none;
 }
 
 .timeline-year {

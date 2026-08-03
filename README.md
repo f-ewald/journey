@@ -55,6 +55,7 @@ flyDurationMs: 2570                      # optional, camera flight time; higher 
 layout: timeline                         # optional: map | timeline — intro/outro cards only
 intro: intro.yaml                        # optional, cards shown before the stops
 outro: outro.yaml                        # optional, cards shown after the stops
+singleCardPerScreen: false               # optional, timeline layout only
 
 stops:
   - title: Northwind Labs            # required — the place or organisation
@@ -141,7 +142,8 @@ intro cards  →  map stops  →  outro cards
 ```
 
 A card file is a `cards:` list using the same fields as a stop, minus `lng`,
-`lat` and `zoom`:
+`lat` and `zoom`. The list may be empty — the deck then opens or closes straight
+on the map, with no need to delete the file or unwire it:
 
 ```yaml
 cards:
@@ -169,6 +171,10 @@ already represented by a point on the map.
   leaves that side of the line empty. Drawn by `timeline-container`'s
   `alternating` layout, one container per run, so the line caps at each run's
   own end dots.
+
+Set `singleCardPerScreen: true` to give each timeline card the whole viewport
+instead, matching the map stops. It has no effect in `map` layout, where the
+cards already fill the screen.
 
 ## Navigation
 

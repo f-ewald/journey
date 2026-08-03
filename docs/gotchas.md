@@ -36,8 +36,10 @@ card explicitly. This is _not_ scroll anchoring: `overflow-anchor: none` changes
 nothing, which is what ruled it out.
 
 **A section shorter than the viewport can never scroll to the top of the page**
-if it is last — the document simply ends. The final timeline entry gets
-`min-height: 100vh` so it stays reachable.
+if it is last — the document simply ends. The last timeline container carries
+60vh of trailing space via `::after` so the final card stays reachable. Making
+that one card taller instead works, but leaves it visibly out of step with its
+siblings.
 
 **Mixed snap heights work**, but only with `scroll-snap-stop: always`. Timeline
 entries (~40vh) and map stops (100vh) share one scroll container and still
