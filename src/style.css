@@ -273,9 +273,14 @@ photo-gallery.panel__media {
    after `.panel` so it wins: both selectors have the same specificity. */
 .panel--timeline {
   width: auto;
-  /* Entries are meant to be short enough that several fit on screen, so
-     imagery gets a tighter budget than it does on a full-viewport stop. */
-  --media-cap: 26vh;
+  /*
+   * A timeline entry grows to its content rather than being pinned to the
+   * viewport, so imagery does not have to be squeezed the way a map stop's
+   * card squeezes it — the entry simply gets taller. This also has to beat
+   * `.panel--media-and-body`, which it does on source order, so a card
+   * carrying both keeps the same generous budget.
+   */
+  --media-cap: 45vh;
 }
 
 /* --- dot rail -------------------------------------------------------- */
