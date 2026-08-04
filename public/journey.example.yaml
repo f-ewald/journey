@@ -39,10 +39,10 @@ showZoomControls: false
 
 stops:
   - title: Where it began
-    location: "Lisbon, Germany"
+    location: "Lisbon, Portugal"
     year: "1994"
-    lng: 7.8488
-    lat: 47.9934
+    lng: -9.1393
+    lat: 38.7223
     body: |
       Each stop is a point on the map and a card beside it. The body is
       **markdown**, so lists work too:
