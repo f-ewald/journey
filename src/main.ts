@@ -142,11 +142,7 @@ function dotFor(entry: SequenceEntry): ScrollDotsItem {
   return { label: entry.card.title, muted: true };
 }
 
-/**
- * Mounts the fullscreen toggle. `onChange` re-pins the deck, since every
- * section is sized in `vh` and the viewport height changes on the way in and
- * out — which would otherwise leave the scroll between two cards.
- */
+/** Mounts the fullscreen toggle, calling `onChange` after every state change. */
 function renderFullscreenButton(onChange: () => void): void {
   const button = document.createElement("fullscreen-button");
   button.addEventListener("fullscreen-change", onChange);

@@ -1,4 +1,5 @@
 import "@f-ewald/components/status-banner.js";
+import { formatExcerpt, formatLocation } from "../journey/issue-text.ts";
 import type { SourceIssue } from "../journey/load.ts";
 
 /**
@@ -39,8 +40,8 @@ function createIssue(issue: SourceIssue): HTMLElement {
   const item = document.createElement("li");
   item.className = "error-view__issue";
 
-  const location = locationOf(issue);
-  if (location) {
+  const location = formatLocation(issue);
+  if (location !== "") {
     const element = document.createElement("p");
     element.className = "error-view__location";
     element.textContent = location;
@@ -54,35 +55,15 @@ function createIssue(issue: SourceIssue): HTMLElement {
     : issue.message;
   item.append(message);
 
-  if (issue.excerpt !== undefined && issue.excerpt !== "") {
-    item.append(createExcerpt(issue));
-  }
+  const excerpt = formatExcerpt(issue);
+  if (excerpt.length > 0) item.append(createExcerpt(excerpt));
 
   return item;
 }
 
-/** `journey.yaml:42:7`, degrading to just the file when there is no position. */
-function locationOf(issue: SourceIssue): string | null {
-  if (!issue.file) return null;
-  if (issue.line === undefined) return issue.file;
-  const column = issue.column === undefined ? "" : `:${issue.column}`;
-  return `${issue.file}:${issue.line}${column}`;
-}
-
-/**
- * The offending source line with a caret under the exact column, which is what
- * turns "somewhere in this file" into "this character".
- */
-function createExcerpt(issue: SourceIssue): HTMLElement {
+function createExcerpt(lines: string[]): HTMLElement {
   const excerpt = document.createElement("pre");
   excerpt.className = "error-view__excerpt";
-
-  const gutter = issue.line === undefined ? "" : `${issue.line} | `;
-  const lines = [`${gutter}${issue.excerpt}`];
-  if (issue.column !== undefined) {
-    lines.push(`${" ".repeat(gutter.length + issue.column - 1)}^`);
-  }
   excerpt.textContent = lines.join("\n");
-
   return excerpt;
 }

@@ -5,7 +5,7 @@ import type { Sequence, SequenceEntry } from "./journey/sequence.ts";
  * `#outro-2`. Namespacing keeps existing `#stop-n` links pointing at the same
  * stop no matter how many intro cards are added in front of it.
  */
-export function hashFor(entry: SequenceEntry): string {
+function hashFor(entry: SequenceEntry): string {
   return `#${entry.kind}-${entry.ordinal + 1}`;
 }
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFile, access } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { formatExcerpt, formatLocation } from "../src/journey/issue-text.ts";
 import { locatePath, parseCardFile, parseJourney } from "../src/journey/load.ts";
 
 const publicDir = new URL("../public/", import.meta.url);
@@ -18,10 +19,7 @@ async function main() {
     { name: "journey.yaml", source: journeyResult.source, cards: journey.stops, root: "stops" },
   ];
 
-  for (const [key, path] of [
-    ["intro", journey.intro],
-    ["outro", journey.outro],
-  ]) {
+  for (const path of [journey.intro, journey.outro]) {
     if (!path) continue;
     const name = path.replace(/^\//, "");
     const result = await readAndParse(name, (source) => parseCardFile(source, name));
@@ -105,17 +103,9 @@ async function exists(target) {
 function fail(title, issues) {
   console.error(title);
   for (const issue of issues) {
-    const position = issue.line === undefined ? "" : `:${issue.line}:${issue.column ?? 1}`;
-    const where = issue.file ? `${issue.file}${position}` : "";
-    console.error(`\n  ${where}`.trimEnd());
+    console.error(`\n  ${formatLocation(issue)}`.trimEnd());
     console.error(`  ${issue.path ? `${issue.path} — ` : ""}${issue.message}`);
-    if (issue.excerpt) {
-      const gutter = issue.line === undefined ? "" : `${issue.line} | `;
-      console.error(`    ${gutter}${issue.excerpt}`);
-      if (issue.column !== undefined) {
-        console.error(`    ${" ".repeat(gutter.length + issue.column - 1)}^`);
-      }
-    }
+    for (const line of formatExcerpt(issue)) console.error(`    ${line}`);
   }
   process.exitCode = 1;
 }

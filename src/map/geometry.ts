@@ -1,6 +1,6 @@
 export type Coordinate = [number, number];
 
-export interface LatLng {
+interface LatLng {
   lng: number;
   lat: number;
 }
@@ -14,7 +14,7 @@ const DENSIFY_STEPS = 24;
  * rather than one long straight projected segment. Always includes both the
  * start point and the cut point.
  */
-export function densify(from: Coordinate, to: Coordinate, fraction: number): Coordinate[] {
+function densify(from: Coordinate, to: Coordinate, fraction: number): Coordinate[] {
   const points: Coordinate[] = [];
   for (let step = 0; step <= DENSIFY_STEPS; step += 1) {
     const t = (step / DENSIFY_STEPS) * fraction;

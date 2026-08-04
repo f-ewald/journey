@@ -28,15 +28,15 @@ export interface SourceIssue {
   excerpt?: string;
 }
 
-export type JourneyResult =
+type JourneyResult =
   | { ok: true; journey: Journey }
   | { ok: false; title: string; issues: SourceIssue[] };
 
-export type CardFileResult =
+type CardFileResult =
   | { ok: true; cards: CardFile["cards"] }
   | { ok: false; title: string; issues: SourceIssue[] };
 
-export type DeckResult =
+type DeckResult =
   | { ok: true; journey: Journey; intro: JourneyCard[]; outro: JourneyCard[] }
   | { ok: false; title: string; issues: SourceIssue[] };
 
@@ -130,13 +130,70 @@ export function locatePath(
 ): Pick<SourceIssue, "line" | "column" | "excerpt"> {
   const parsed = parseWithPositions(source, "");
   if (!parsed.ok) return {};
-  const located = locate(parsed.parsed, source, "", { path, label: "", message: "" });
-  return { line: located.line, column: located.column, excerpt: located.excerpt };
+  const located = locate(parsed.parsed, source, "", {
+    path,
+    label: "",
+    message: "",
+  });
+  return {
+    line: located.line,
+    column: located.column,
+    excerpt: located.excerpt,
+  };
 }
 
 /** The 1-based `line` of `source`, with trailing whitespace removed. */
 function lineAt(source: string, line: number): string | undefined {
   return source.split("\n")[line - 1]?.trimEnd();
+}
+
+/** Minimal shape of a zod schema, so this module needs no zod import. */
+interface DocumentSchema<T> {
+  safeParse(
+    raw: unknown,
+  ):
+    | { success: true; data: T }
+    | { success: false; error: Parameters<typeof schemaIssues>[0] };
+}
+
+/**
+ * Parses `source` and validates it against `schema`, locating every problem in
+ * the document. `rootKey` names the list the file should carry, and appears
+ * only in the message for a root that is not a mapping.
+ */
+function parseAndValidate<T>(
+  source: string,
+  file: string,
+  schema: DocumentSchema<T>,
+  rootKey: string,
+): { ok: true; data: T } | Failure {
+  const parsed = parseWithPositions(source, file);
+  if (!parsed.ok) return parsed;
+
+  const raw: unknown = parsed.parsed.doc.toJS();
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    return {
+      ok: false,
+      title: `${file} is empty or not a mapping`,
+      issues: [
+        {
+          file,
+          message: `Expected a top-level mapping with a \`${rootKey}\` list.`,
+        },
+      ],
+    };
+  }
+
+  const result = schema.safeParse(raw);
+  if (result.success) return { ok: true, data: result.data };
+
+  return {
+    ok: false,
+    title: `${file} does not match the expected schema`,
+    issues: schemaIssues(result.error).map((issue) =>
+      locate(parsed.parsed, source, file, issue),
+    ),
+  };
 }
 
 /**
@@ -148,62 +205,14 @@ export function parseJourney(
   source: string,
   file = "journey.yaml",
 ): JourneyResult {
-  const parsed = parseWithPositions(source, file);
-  if (!parsed.ok) return parsed;
-
-  const raw: unknown = parsed.parsed.doc.toJS();
-  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
-    return {
-      ok: false,
-      title: `${file} is empty or not a mapping`,
-      issues: [
-        { file, message: "Expected a top-level mapping with a `stops` list." },
-      ],
-    };
-  }
-
-  const result = journeySchema.safeParse(raw);
-  if (!result.success) {
-    return {
-      ok: false,
-      title: `${file} does not match the expected schema`,
-      issues: schemaIssues(result.error).map((issue) =>
-        locate(parsed.parsed, source, file, issue),
-      ),
-    };
-  }
-
-  return { ok: true, journey: result.data };
+  const result = parseAndValidate(source, file, journeySchema, "stops");
+  return result.ok ? { ok: true, journey: result.data } : result;
 }
 
 /** Parses and validates an intro/outro card file. Never throws. */
 export function parseCardFile(source: string, file: string): CardFileResult {
-  const parsed = parseWithPositions(source, file);
-  if (!parsed.ok) return parsed;
-
-  const raw: unknown = parsed.parsed.doc.toJS();
-  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
-    return {
-      ok: false,
-      title: `${file} is empty or not a mapping`,
-      issues: [
-        { file, message: "Expected a top-level mapping with a `cards` list." },
-      ],
-    };
-  }
-
-  const result = cardFileSchema.safeParse(raw);
-  if (!result.success) {
-    return {
-      ok: false,
-      title: `${file} does not match the expected schema`,
-      issues: schemaIssues(result.error).map((issue) =>
-        locate(parsed.parsed, source, file, issue),
-      ),
-    };
-  }
-
-  return { ok: true, cards: result.data.cards };
+  const result = parseAndValidate(source, file, cardFileSchema, "cards");
+  return result.ok ? { ok: true, cards: result.data.cards } : result;
 }
 
 /** Fetches `url` as text, or describes why it could not be read. */
@@ -241,21 +250,21 @@ async function fetchText(
 }
 
 /** Fetches a journey YAML document and validates it. Never throws. */
-export async function loadJourney(url: string): Promise<JourneyResult> {
+async function loadJourney(url: string): Promise<JourneyResult> {
   const text = await fetchText(url);
   if (!text.ok) return text;
   return parseJourney(text.source, fileNameOf(url));
 }
 
 /** Fetches an intro/outro card file and validates it. Never throws. */
-export async function loadCardFile(url: string): Promise<CardFileResult> {
+async function loadCardFile(url: string): Promise<CardFileResult> {
   const text = await fetchText(url);
   if (!text.ok) return text;
   return parseCardFile(text.source, fileNameOf(url));
 }
 
 /** Resolves a card file path from `journey.yaml` against the site root. */
-export function cardFileUrl(path: string): string {
+function cardFileUrl(path: string): string {
   return path.startsWith("/") || /^https?:/.test(path) ? path : `/${path}`;
 }
 

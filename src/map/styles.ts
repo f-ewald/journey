@@ -1,7 +1,7 @@
 import type { StyleSpecification } from "mapbox-gl";
 
 /** A Mapbox style URL, or a full style built here for raster basemaps. */
-export type MapStyle = string | StyleSpecification;
+type MapStyle = string | StyleSpecification;
 
 /**
  * Stamen's tiles have been hosted by Stadia Maps since Stamen retired their own
@@ -112,16 +112,20 @@ const PRESETS: Record<string, () => MapStyle> = {
 export const MAP_STYLE_PRESETS = Object.keys(PRESETS);
 
 /** Whether `value` is a style URL rather than a preset name. */
-export function isStyleUrl(value: string): boolean {
+function isStyleUrl(value: string): boolean {
   return value.startsWith("mapbox://") || /^https?:\/\//.test(value);
 }
 
-/** True for a preset name or a style URL — what the schema accepts. */
+/**
+ * True for a preset name or a style URL — what the schema accepts. Own keys
+ * only: `in` walks the prototype chain, which let `toString` and `__proto__`
+ * through as style names and then threw on resolution.
+ */
 export function isKnownMapStyle(value: string): boolean {
-  return isStyleUrl(value) || value in PRESETS;
+  return isStyleUrl(value) || Object.hasOwn(PRESETS, value);
 }
 
 /** Resolves `mapStyle` to something Mapbox GL can load. URLs pass through. */
 export function resolveMapStyle(value: string): MapStyle {
-  return PRESETS[value]?.() ?? value;
+  return Object.hasOwn(PRESETS, value) ? PRESETS[value]() : value;
 }

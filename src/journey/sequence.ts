@@ -5,7 +5,7 @@ import type {
   PlacelessCard,
 } from "./schema.ts";
 
-export type SequenceKind = "intro" | "stop" | "outro";
+type SequenceKind = "intro" | "stop" | "outro";
 
 export interface SequenceEntry {
   kind: SequenceKind;

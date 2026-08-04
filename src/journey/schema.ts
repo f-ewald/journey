@@ -1,16 +1,13 @@
 import { z } from "zod";
 import { isKnownMapStyle, MAP_STYLE_PRESETS } from "../map/styles.ts";
 
-export const DEFAULT_MAP_STYLE = "standard";
-/** Only applies to styles built on Mapbox Standard; ignored by classic styles. */
-export const DEFAULT_MAP_THEME = "faded";
-export const DEFAULT_ZOOM = 11;
-/** Camera flight time between stops, in milliseconds. Higher is slower. */
-export const DEFAULT_FLY_DURATION_MS = 2570;
-/** How place-less intro and outro cards are presented when unspecified. */
-export const DEFAULT_LAYOUT = "map";
-/** Fallback deck title, used before the YAML loads and when it omits one. */
-export const DEFAULT_TITLE = "Journey";
+const DEFAULT_MAP_STYLE = "standard";
+const DEFAULT_MAP_THEME = "faded";
+const DEFAULT_ZOOM = 11;
+/** Higher is slower. */
+const DEFAULT_FLY_DURATION_MS = 2570;
+const DEFAULT_LAYOUT = "map";
+const DEFAULT_TITLE = "Journey";
 
 const imageObjectSchema = z.strictObject({
   src: z.string().min(1),

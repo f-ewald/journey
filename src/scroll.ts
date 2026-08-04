@@ -7,7 +7,7 @@ export interface ScrollState {
   segmentProgress: number;
 }
 
-export type ScrollListener = (state: ScrollState) => void;
+type ScrollListener = (state: ScrollState) => void;
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
@@ -18,13 +18,12 @@ const clamp = (value: number, min: number, max: number) =>
  * share one index — and both are derived from section offsets, so they stay
  * continuous while scrolling and reverse cleanly.
  *
- * Emits immediately with the current state, then on every change. Returns a
- * teardown function.
+ * Emits immediately with the current state, then on every change.
  */
 export function observeScroll(
   sections: HTMLElement[],
   onChange: ScrollListener,
-): () => void {
+): void {
   let last: ScrollState | null = null;
   let frame = 0;
 
@@ -53,12 +52,6 @@ export function observeScroll(
   window.addEventListener("scroll", scheduleEmit, { passive: true });
   window.addEventListener("resize", scheduleEmit, { passive: true });
   emit();
-
-  return () => {
-    if (frame !== 0) cancelAnimationFrame(frame);
-    window.removeEventListener("scroll", scheduleEmit);
-    window.removeEventListener("resize", scheduleEmit);
-  };
 }
 
 /**
@@ -73,7 +66,6 @@ export function observeScroll(
  */
 function measure(sections: HTMLElement[]): ScrollState {
   const scrollY = window.scrollY;
-  const halfViewport = window.innerHeight / 2;
 
   let activeIndex = 0;
   let segmentIndex = 0;
@@ -82,7 +74,7 @@ function measure(sections: HTMLElement[]): ScrollState {
   for (let index = 1; index < sections.length; index += 1) {
     const top = sections[index].offsetTop;
     const travel = top - sections[index - 1].offsetTop;
-    if (scrollY >= top - Math.min(travel, halfViewport * 2) / 2)
+    if (scrollY >= top - Math.min(travel, window.innerHeight) / 2)
       activeIndex = index;
     if (scrollY >= top && index <= lastSegment) segmentIndex = index;
   }
