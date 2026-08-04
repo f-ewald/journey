@@ -17,6 +17,7 @@ import {
   type SequenceEntry,
 } from "./journey/sequence.ts";
 import { MapController } from "./map/controller.ts";
+import { resolveMapStyle } from "./map/styles.ts";
 import { prefersReducedMotion } from "./motion.ts";
 import { positionFromHash, replaceHash } from "./hash.ts";
 import { observeScroll, type ScrollState } from "./scroll.ts";
@@ -63,6 +64,8 @@ async function start(
   token: string,
 ): Promise<void> {
   document.title = journey.title;
+  // Gates the pointer-events rules that let drags reach the map canvas.
+  document.body.classList.toggle("map-interactive", journey.showZoomControls);
 
   const sequence = buildSequence(journey, intro, outro);
   const initial = positionFromHash(sequence) ?? 0;
@@ -189,7 +192,10 @@ function mountMap(journey: Journey, token: string, initialStop: number): void {
   const stop = journey.stops[initialStop] ?? journey.stops[0];
   const element = document.createElement("mapbox-map");
   element.accessToken = token;
-  element.styleUrl = journey.mapStyle;
+  // A raster basemap has no style document to point at, so the resolved value
+  // may be a whole style object. Mapbox GL's `style` option takes either, but
+  // the component types the property as the URL case only.
+  element.styleUrl = resolveMapStyle(journey.mapStyle) as string;
   element.center = [stop.lng, stop.lat];
   element.zoom = zoomFor(stop, journey);
   requireElement("#map-layer").replaceChildren(element);

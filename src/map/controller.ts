@@ -1,4 +1,4 @@
-import { Marker } from "mapbox-gl";
+import { Marker, NavigationControl } from "mapbox-gl";
 import type { Map as MapboxMap, PaddingOptions } from "mapbox-gl";
 import "@f-ewald/components/map-circle.js";
 import "@f-ewald/components/map-pin.js";
@@ -46,6 +46,7 @@ interface StopMarkers {
  */
 export class MapController {
   private map: MapboxMap | null = null;
+  private navigation: NavigationControl | null = null;
   private markers: StopMarkers[] = [];
   private activeIndex = 0;
   private lineCoordinates: Coordinate[] = [];
@@ -60,6 +61,7 @@ export class MapController {
   attach(map: MapboxMap): void {
     this.map = map;
     this.applyBasemapConfig(map);
+    this.applyInteractions(map);
     this.createMarkers(map);
     this.createLineLayer(map);
     this.applyMarkerVisibility();
@@ -72,13 +74,50 @@ export class MapController {
    * so this is skipped rather than allowed to throw.
    */
   private applyBasemapConfig(map: MapboxMap): void {
-    const imports = (map.getStyle() as { imports?: Array<{ id: string }> } | undefined)?.imports;
+    const imports = (
+      map.getStyle() as { imports?: Array<{ id: string }> } | undefined
+    )?.imports;
     if (!imports?.some((entry) => entry.id === BASEMAP_IMPORT)) return;
 
     for (const [key, value] of Object.entries(BASEMAP_CONFIG)) {
       map.setConfigProperty(BASEMAP_IMPORT, key, value);
     }
     map.setConfigProperty(BASEMAP_IMPORT, "theme", this.journey.mapTheme);
+  }
+
+  /**
+   * Settles every interaction handler explicitly rather than leaving Mapbox's
+   * defaults in place, because a scroll-driven deck and a pannable map compete
+   * for the same gestures.
+   *
+   * Scroll zoom and keyboard panning stay off whatever the setting: the wheel
+   * and the arrow keys drive the deck itself, and handing either to the map
+   * would strand the presenter between stops. Rotation stays off too — no
+   * camera flight ever sets a bearing, so a map rotated by hand could never be
+   * straightened by scrolling on.
+   */
+  private applyInteractions(map: MapboxMap): void {
+    map.scrollZoom.disable();
+    map.keyboard.disable();
+    map.boxZoom.disable();
+    map.dragRotate.disable();
+    map.touchZoomRotate.disableRotation();
+
+    const manual = this.journey.showZoomControls;
+    for (const handler of [
+      map.dragPan,
+      map.doubleClickZoom,
+      map.touchZoomRotate,
+    ]) {
+      if (manual) handler.enable();
+      else handler.disable();
+    }
+
+    if (!manual) return;
+    // Controls survive a style reload, so this must not add a second one.
+    this.navigation ??= new NavigationControl({ showCompass: false });
+    if (!map.hasControl(this.navigation))
+      map.addControl(this.navigation, "top-right");
   }
 
   /** Re-registers everything a style swap discarded. */
@@ -111,7 +150,11 @@ export class MapController {
       map.jumpTo(camera);
       return;
     }
-    map.flyTo({ ...camera, duration: this.journey.flyDurationMs, essential: true });
+    map.flyTo({
+      ...camera,
+      duration: this.journey.flyDurationMs,
+      essential: true,
+    });
   }
 
   /** Re-applies the left-third framing after a viewport resize. */
@@ -125,7 +168,11 @@ export class MapController {
    */
   drawLine(segmentIndex: number, progress: number): void {
     const fraction = prefersReducedMotion() && progress > 0 ? 1 : progress;
-    this.lineCoordinates = journeyCoordinates(this.journey.stops, segmentIndex, fraction);
+    this.lineCoordinates = journeyCoordinates(
+      this.journey.stops,
+      segmentIndex,
+      fraction,
+    );
     this.writeLine();
   }
 
@@ -143,7 +190,11 @@ export class MapController {
     if (!map.getSource(LINE_SOURCE)) {
       map.addSource(LINE_SOURCE, {
         type: "geojson",
-        data: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [] } },
+        data: {
+          type: "Feature",
+          properties: {},
+          geometry: { type: "LineString", coordinates: [] },
+        },
       });
     }
     if (map.getLayer(LINE_LAYER)) return;
@@ -201,6 +252,8 @@ function setMarkerVisible(marker: Marker, visible: boolean): void {
 }
 
 function accentColor(): string {
-  const value = getComputedStyle(document.documentElement).getPropertyValue("--ui-primary").trim();
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue("--ui-primary")
+    .trim();
   return value === "" ? "#4f46e5" : value;
 }

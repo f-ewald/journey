@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { isKnownMapStyle, MAP_STYLE_PRESETS } from "../map/styles.ts";
 
-export const DEFAULT_MAP_STYLE = "mapbox://styles/mapbox/standard";
+export const DEFAULT_MAP_STYLE = "standard";
 /** Only applies to styles built on Mapbox Standard; ignored by classic styles. */
 export const DEFAULT_MAP_THEME = "faded";
 export const DEFAULT_ZOOM = 11;
@@ -66,7 +67,15 @@ export const cardFileSchema = z.strictObject({
 
 export const journeySchema = z.strictObject({
   title: z.string().min(1).default(DEFAULT_TITLE),
-  mapStyle: z.string().min(1).default(DEFAULT_MAP_STYLE),
+  /** A named preset, or any Mapbox style URL. */
+  mapStyle: z
+    .string()
+    .min(1)
+    .refine(isKnownMapStyle, {
+      message: `Unknown map style. Use a style URL, or one of: ${MAP_STYLE_PRESETS.join(", ")}`,
+    })
+    .default(DEFAULT_MAP_STYLE),
+  /** Only applies to Mapbox Standard; other basemaps ignore it. */
   mapTheme: z
     .enum(["default", "faded", "monochrome"])
     .default(DEFAULT_MAP_THEME),
@@ -80,6 +89,8 @@ export const journeySchema = z.strictObject({
   outro: z.string().min(1).nullish(),
   /** Gives each timeline card the whole viewport instead of fitting several on screen. */
   singleCardPerScreen: z.boolean().default(false),
+  /** Shows zoom buttons, and lets the map be panned and zoomed by hand. */
+  showZoomControls: z.boolean().default(false),
   stops: z.array(stopSchema).min(1),
 });
 

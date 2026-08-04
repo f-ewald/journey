@@ -27,13 +27,13 @@ explicit error instead of a blank map. `.env` is gitignored.
 
 ## Scripts
 
-| Script | Purpose |
-| --- | --- |
-| `npm run dev` | Dev server with hot reload. |
-| `npm run validate` | Parse and schema-check `public/journey.yaml` and its card files. |
-| `npm run typecheck` | `tsc --noEmit`. |
-| `npm run build` | Typecheck, then build into `dist/`. |
-| `npm run preview` | Serve the production build. |
+| Script              | Purpose                                                          |
+| ------------------- | ---------------------------------------------------------------- |
+| `npm run dev`       | Dev server with hot reload.                                      |
+| `npm run validate`  | Parse and schema-check `public/journey.yaml` and its card files. |
+| `npm run typecheck` | `tsc --noEmit`.                                                  |
+| `npm run build`     | Typecheck, then build into `dist/`.                              |
+| `npm run preview`   | Serve the production build.                                      |
 
 ## Authoring content
 
@@ -57,30 +57,31 @@ mistyped image path otherwise yields a silently broken image rather than an
 error.
 
 ```yaml
-title: California Coast Journey          # optional, also used as the page title
-mapStyle: mapbox://styles/mapbox/standard # optional
-mapTheme: faded                          # optional: default | faded | monochrome
-defaultZoom: 10                          # optional, used when a stop omits `zoom`
-flyDurationMs: 2570                      # optional, camera flight time; higher is slower
-layout: timeline                         # optional: map | timeline — intro/outro cards only
-intro: intro.yaml                        # optional, cards shown before the stops
-outro: outro.yaml                        # optional, cards shown after the stops
-singleCardPerScreen: false               # optional, timeline layout only
+title: California Coast Journey # optional, also used as the page title
+mapStyle: watercolor # optional, see "Basemaps" below
+mapTheme: faded # optional: default | faded | monochrome
+defaultZoom: 10 # optional, used when a stop omits `zoom`
+flyDurationMs: 2570 # optional, camera flight time; higher is slower
+layout: timeline # optional: map | timeline — intro/outro cards only
+intro: intro.yaml # optional, cards shown before the stops
+outro: outro.yaml # optional, cards shown after the stops
+singleCardPerScreen: false # optional, timeline layout only
+showZoomControls: false # optional, zoom buttons + manual panning
 
 stops:
-  - title: Northwind Labs            # required — the place or organisation
+  - title: Northwind Labs # required — the place or organisation
     location: Porto, CA # optional, geographic context for the title
-    year: 2011                 # optional, shown above the title
-    lng: -122.4194             # required
-    lat: 37.7749               # required
-    zoom: 11.5                 # optional, overrides defaultZoom
-    body: |                    # optional markdown, see below
+    year: 2011 # optional, shown above the title
+    lng: -122.4194 # required
+    lat: 37.7749 # required
+    zoom: 11.5 # optional, overrides defaultZoom
+    body: | # optional markdown, see below
       Fog rolls through the Golden Gate most summer mornings.
-    images:                    # optional
+    images: # optional
       - src: /images/golden-gate.jpg
         alt: The Golden Gate Bridge at dawn
-        caption: Leaving the city   # optional
-      - /images/bay.jpg        # shorthand: a bare path
+        caption: Leaving the city # optional
+      - /images/bay.jpg # shorthand: a bare path
 ```
 
 ### Text on a card
@@ -88,19 +89,19 @@ stops:
 Put it in `body`, using a YAML block scalar — the `|` keeps your line breaks:
 
 ```yaml
-  - title: College & Startup
-    location: Vienna, Germany
-    year: 2005
-    lng: 7.0119
-    lat: 51.4576
-    body: |
-      Studied here, and started a first company on the side. Markdown works in
-      this field: **bold**, *italic*, and [links](https://example.com).
+- title: College & Startup
+  location: Vienna, Germany
+  year: 2005
+  lng: 7.0119
+  lat: 51.4576
+  body: |
+    Studied here, and started a first company on the side. Markdown works in
+    this field: **bold**, *italic*, and [links](https://example.com).
 
-      - Bullet lists suit a few short highlights
-      - One line each stays readable from the back of the room
+    - Bullet lists suit a few short highlights
+    - One line each stays readable from the back of the room
 
-      > A blockquote pulls out a line worth dwelling on.
+    > A blockquote pulls out a line worth dwelling on.
 ```
 
 When a stop has both, the image renders above the body text, and the image's
@@ -133,11 +134,43 @@ short hop and a transatlantic one take the same time. Under
 `prefers-reduced-motion` the camera jumps instantly and the value is ignored.
 Scroll and rail-click scrolling are handled by the browser and are not affected.
 
+### Basemaps
+
+`mapStyle` takes a name, or any Mapbox style URL:
+
+| Name                               | Basemap                                                    |
+| ---------------------------------- | ---------------------------------------------------------- |
+| `standard`                         | Mapbox Standard (default)                                  |
+| `light` / `outdoors` / `satellite` | The corresponding Mapbox styles                            |
+| `watercolor`                       | Stamen Watercolor — painterly, with place names layered on |
+| `terrain`                          | Stamen Terrain                                             |
+| `toner`                            | Stamen Toner — high-contrast black and white               |
+
+The Stamen basemaps are raster tiles hosted by Stadia Maps, who took them over
+when Stamen retired their own servers in 2023. Browsers are served without an
+API key, but that anonymous access is **rate limited** — once it starts
+returning `429` the map stays blank, because Mapbox waits for the first tiles
+before reporting itself ready. For anything that has to be reliable, put a free
+key in `.env` as `VITE_STADIA_API_KEY`. Attribution is carried by the style and
+appears in the map's own attribution control, as Stadia's terms require.
+
+Watercolor carries no lettering of its own, so Toner's place labels are drawn
+over it — Toner's rather than Terrain's, because Terrain's include road shields,
+the street-map clutter this deck suppresses everywhere else.
+
+### Moving the map by hand
+
+`showZoomControls: true` adds zoom buttons and lets the map be dragged and
+zoomed. The wheel and the arrow keys always stay with the deck, so scrolling
+still advances the journey rather than zooming the map, and rotation stays off
+since no camera flight ever sets a bearing. Scrolling to the next stop flies the
+camera there, discarding whatever you moved to.
+
 The basemap is [Mapbox Standard](https://docs.mapbox.com/map-styles/reference/standard/)
 with road, POI and transit labels suppressed and administrative boundaries kept,
 so the map reads politically and geographically rather than as a street map.
-`mapTheme` tunes its saturation and only applies to Standard — classic styles
-(`light-v11`, `outdoors-v12`, …) ignore it, and the label configuration is
+`mapTheme` tunes its saturation and only applies to Standard — the classic
+Mapbox styles and the Stamen basemaps ignore it, and the label configuration is
 skipped for them automatically. Images are served straight from `public/`; one image
 renders as a plain figure, several become a carousel.
 
@@ -158,11 +191,11 @@ on the map, with no need to delete the file or unwire it:
 ```yaml
 cards:
   - title: Where it started
-    year: 1994              # optional
-    location: Lisbon      # optional
-    body: |                 # optional markdown, exactly as on a stop
+    year: 1994 # optional
+    location: Lisbon # optional
+    body: | # optional markdown, exactly as on a stop
       Same **markdown** and the same image support.
-    images:                 # optional
+    images: # optional
       - /images/start.jpg
 ```
 
@@ -218,11 +251,11 @@ are in [`docs/gotchas.md`](./docs/gotchas.md).
 
 ## Layout of the source
 
-| Path | Contents |
-| --- | --- |
-| `src/journey/` | YAML schema (zod), the runtime loader, and the intro/stops/outro sequence. |
-| `src/map/` | Mapbox controller (camera, markers, line) and its pure geometry helpers. |
-| `src/ui/` | Sections and panels, and the error surface. The dot rail, the fullscreen toggle and the timeline come from `@f-ewald/components`. |
-| `src/scroll.ts` | The single active-card and line-progress signal everything else consumes. |
-| `src/hash.ts` | `#intro-n` / `#stop-n` / `#outro-n` deep linking. |
-| `scripts/` | `validate-journey.mjs`, which reuses the same schema as the app. |
+| Path            | Contents                                                                                                                          |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `src/journey/`  | YAML schema (zod), the runtime loader, and the intro/stops/outro sequence.                                                        |
+| `src/map/`      | Mapbox controller (camera, markers, line) and its pure geometry helpers.                                                          |
+| `src/ui/`       | Sections and panels, and the error surface. The dot rail, the fullscreen toggle and the timeline come from `@f-ewald/components`. |
+| `src/scroll.ts` | The single active-card and line-progress signal everything else consumes.                                                         |
+| `src/hash.ts`   | `#intro-n` / `#stop-n` / `#outro-n` deep linking.                                                                                 |
+| `scripts/`      | `validate-journey.mjs`, which reuses the same schema as the app.                                                                  |

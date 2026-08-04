@@ -48,15 +48,15 @@ main.ts wires: sections + rail + hash + map controller
 scroll.ts publishes the single {activeIndex, segmentIndex, segmentProgress} signal
 ```
 
-| Path            | Contents                                                             |
-| --------------- | -------------------------------------------------------------------- |
-| `src/journey/`  | zod schema, the loader, and the intro/stops/outro sequence.          |
-| `src/map/`      | Mapbox controller (camera, markers, line) and pure geometry helpers. |
-| `src/ui/`       | Sections and panels, and the error surface.                          |
-| `src/scroll.ts` | The one active-card and line-progress signal everything consumes.    |
-| `src/hash.ts`   | `#intro-n` / `#stop-n` / `#outro-n` deep linking.                    |
-| `src/main.ts`   | Orchestration. The riskiest file — most invariants live here.        |
-| `scripts/`      | `validate-journey.mjs`, sharing the runtime schema.                  |
+| Path            | Contents                                                                          |
+| --------------- | --------------------------------------------------------------------------------- |
+| `src/journey/`  | zod schema, the loader, and the intro/stops/outro sequence.                       |
+| `src/map/`      | Mapbox controller (camera, markers, line), basemap presets, and geometry helpers. |
+| `src/ui/`       | Sections and panels, and the error surface.                                       |
+| `src/scroll.ts` | The one active-card and line-progress signal everything consumes.                 |
+| `src/hash.ts`   | `#intro-n` / `#stop-n` / `#outro-n` deep linking.                                 |
+| `src/main.ts`   | Orchestration. The riskiest file — most invariants live here.                     |
+| `scripts/`      | `validate-journey.mjs`, sharing the runtime schema.                               |
 
 ## Invariants
 

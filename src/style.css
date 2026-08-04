@@ -66,6 +66,24 @@ body {
   position: relative;
 }
 
+/*
+ * `showZoomControls`: the sections sit above the map and normally swallow every
+ * pointer event, which is what keeps the wheel scrolling the deck rather than
+ * reaching the canvas. Letting them pass events through hands drags to the map,
+ * while the cards keep theirs so links and images stay clickable. The wheel
+ * still scrolls the page, because the map's own scroll zoom stays disabled.
+ */
+.map-interactive #stops {
+  pointer-events: none;
+}
+
+/* Cards stay clickable, and the timeline keeps swallowing events since it
+   paints over the map — dragging a map you cannot see reads as a glitch. */
+.map-interactive .panel,
+.map-interactive #stops timeline-container {
+  pointer-events: auto;
+}
+
 /* --- timeline -------------------------------------------------------- */
 
 /*

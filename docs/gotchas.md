@@ -17,6 +17,12 @@ while it is `npm link`ed, the dev server keeps serving the old copy. Restart
 with `rm -rf node_modules/.vite && npm run dev -- --force`, or you will debug a
 fix that was never loaded.
 
+**`import.meta.env` does not exist in `npm run validate`.** The validator runs
+the TypeScript sources directly under Node, so any module the schema reaches
+must not read Vite-only globals unguarded — `import.meta.env.X` throws
+`Cannot read properties of undefined` there while working perfectly in the
+browser. Use `import.meta.env?.X`.
+
 **`sips -Z` overwrites the file in place.** Use `--out` to preserve originals.
 Verified the hard way: 908×689/190K became 800×607/57K in the same file.
 
