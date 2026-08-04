@@ -50,7 +50,7 @@ scroll.ts publishes the single {activeIndex, segmentIndex, segmentProgress} sign
 
 | Path            | Contents                                                                          |
 | --------------- | --------------------------------------------------------------------------------- |
-| `src/journey/`  | zod schema, the loader, and the intro/stops/outro sequence.                       |
+| `src/journey/`  | zod schema, the loader, the intro/stops/outro sequence, and issue formatting.     |
 | `src/map/`      | Mapbox controller (camera, markers, line), basemap presets, and geometry helpers. |
 | `src/ui/`       | Sections and panels, and the error surface.                                       |
 | `src/scroll.ts` | The one active-card and line-progress signal everything consumes.                 |
@@ -92,7 +92,9 @@ Break these and the deck fails in ways that are hard to see.
 
 ## Conventions
 
-- **TypeScript**: `erasableSyntaxOnly` is on, so no parameter properties
+- **TypeScript**: `strict` and `noUnusedLocals` are on, so keep symbols unexported
+  unless another file reads them — that is what makes the unused check work.
+  `erasableSyntaxOnly` is on too, so no parameter properties
   (`constructor(private readonly x)`) and no enums. `verbatimModuleSyntax`
   requires `import type` for type-only imports. Relative imports use the real
   `.ts` extension.

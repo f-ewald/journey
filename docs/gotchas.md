@@ -41,6 +41,12 @@ an indigo radial gradient nearly black, which looks exactly like a broken file.
 Rasterise SVGs through a real browser before concluding anything about how one
 looks.
 
+**`key in object` walks the prototype chain.** Validating a name against a
+lookup table with `in` accepted `toString`, `constructor` and `__proto__` as map
+style names; `__proto__` then threw an uncaught `TypeError` on resolution,
+turning a content typo into a crash. Use `Object.hasOwn(table, key)` whenever
+the key comes from user content.
+
 ## Scroll and snap
 
 **`scroll-snap-type: mandatory` reverts a programmatic `scrollTo`** to the
