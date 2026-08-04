@@ -1,0 +1,72 @@
+# Example deck content. Copy to `journey.yaml` to start — that name is
+# gitignored, so your own journey stays out of the repository.
+#
+# Edited freely: content is fetched at runtime, so there is no rebuild, just a
+# reload. Validate with `npm run validate`.
+
+title: Journey
+
+# A named basemap, or any Mapbox style URL:
+#   standard | light | outdoors | satellite | watercolor | terrain | toner
+mapStyle: standard
+
+# Only applies to `standard`: default | faded | monochrome
+mapTheme: faded
+
+# Used by any stop that omits its own `zoom`.
+defaultZoom: 11
+
+# Camera flight time between stops, in milliseconds. Higher is slower.
+flyDurationMs: 2570
+
+# How the place-less intro and outro cards are presented:
+#   map      — each card over a dimmed map (default)
+#   timeline — a central line, year on one side, card on the other, alternating
+layout: timeline
+
+# Optional card files, relative to public/. Omit either — or leave its `cards:`
+# list empty — to open or close straight on the map.
+intro: intro.yaml
+outro: outro.yaml
+
+# Timeline layout only: give each card the whole viewport instead of fitting
+# several on screen at once.
+singleCardPerScreen: false
+
+# Show zoom buttons, and allow panning and zooming the map by hand. The wheel
+# and the arrow keys always stay with the deck.
+showZoomControls: false
+
+stops:
+  - title: Where it began
+    location: "Lisbon, Germany"
+    year: "1994"
+    lng: 7.8488
+    lat: 47.9934
+    body: |
+      Each stop is a point on the map and a card beside it. The body is
+      **markdown**, so lists work too:
+
+      - one point
+      - another point
+
+  - title: The middle years
+    location: "Berlin, Germany"
+    year: "2004–2011"
+    lng: 13.405
+    lat: 52.52
+    # Overrides defaultZoom for this stop only.
+    zoom: 10
+    body: |
+      A year may be a single value or a range; it is printed verbatim. Omit it
+      entirely and the line is left out.
+
+  - title: Where it leads
+    location: "Porto, CA"
+    lng: -122.0841
+    lat: 37.3861
+    zoom: 12
+    body: |
+      Add photographs with an `images:` list. Paths are relative to `public/`,
+      for example `/images/berlin/street.jpg`, and `npm run validate` checks
+      that every one of them exists.

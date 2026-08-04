@@ -1,0 +1,22 @@
+# Example intro cards, shown before the map journey. Copy to `intro.yaml`.
+#
+# These have no place on the map, so they take the same fields as a stop minus
+# `lng`, `lat` and `zoom`. The list may be empty, in which case the deck opens
+# straight on the map.
+
+cards:
+  - title: Where it started
+    year: "1994"
+    location: Somewhere
+    body: |
+      The opening of the story. Cards here support the same **markdown** as the
+      map stops, including lists:
+
+      - one point
+      - another point
+
+  - title: The question
+    year: "2004"
+    body: |
+      In `timeline` layout this card mirrors the one above it: the year moves to
+      the other side of the line, and the card with it.

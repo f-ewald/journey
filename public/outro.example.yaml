@@ -1,0 +1,14 @@
+# Example outro cards, shown after the map journey. Copy to `outro.yaml`.
+#
+# Same format as `intro.example.yaml`. The list may be empty, in which case the
+# deck ends on the map.
+
+cards:
+  - title: What I took away
+    year: Today
+    body: |
+      The closing of the story.
+
+  - title: Thank you
+    body: |
+      This card has no year, so the timeline leaves that side of the line empty.

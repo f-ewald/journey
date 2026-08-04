@@ -17,13 +17,21 @@ Built on [`@f-ewald/components`](https://www.npmjs.com/package/@f-ewald/componen
 
 ```bash
 npm install
-cp .env.example .env      # then paste your Mapbox token into VITE_MAPBOX_TOKEN
+cp .env.example .env                        # paste your Mapbox token in
+cp public/journey.example.yaml public/journey.yaml
+cp public/intro.example.yaml public/intro.yaml
+cp public/outro.example.yaml public/outro.yaml
 npm run dev
 ```
 
-A token is required: create one at
+A Mapbox token is required: create one at
 <https://account.mapbox.com/access-tokens/>. Without it the app renders an
 explicit error instead of a blank map. `.env` is gitignored.
+
+Your deck is yours: `journey.yaml`, `intro.yaml`, `outro.yaml` and everything
+under `public/images/` are gitignored, so a personal journey and its
+photographs never end up in the repository. The `.example.yaml` files are what
+ship here, and they document every option.
 
 ## Scripts
 
@@ -37,8 +45,9 @@ explicit error instead of a blank map. `.env` is gitignored.
 
 ## Authoring content
 
-All content lives in `public/journey.yaml`. It is fetched at runtime, so editing
-it needs no rebuild — save the file and reload the page. Run `npm run validate`
+All content lives in `public/journey.yaml` — gitignored, so start by copying
+`public/journey.example.yaml` over it. It is fetched at runtime, so editing it
+needs no rebuild — save the file and reload the page. Run `npm run validate`
 to check it without opening a browser. Every problem is reported the way a
 compiler reports one — `journey.yaml:40:10`, the document path, and the
 offending line with a caret under the column:

@@ -27,3 +27,10 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Personal deck content: your own journey and your own photographs. Copy the
+# `.example.yaml` files in public/ to get started — those are what ship here.
+/public/journey.yaml
+/public/intro.yaml
+/public/outro.yaml
+/public/images/

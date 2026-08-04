@@ -102,6 +102,10 @@ Break these and the deck fails in ways that are hard to see.
   fallbacks. Component internals are not reachable from here — style the host
   or slot content in.
 - **Content** belongs in YAML under `public/`, never hardcoded in TS.
+- **The deck content is gitignored.** `journey.yaml`, `intro.yaml`, `outro.yaml`
+  and `public/images/` hold someone's personal journey and photographs and are
+  never committed. The `.example.yaml` files beside them are what ship, so a
+  new option must be documented there too.
 
 ## Non-goals
 
