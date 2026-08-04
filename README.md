@@ -13,14 +13,11 @@ timeline.
 
 Built on [`@f-ewald/components`](https://www.npmjs.com/package/@f-ewald/components).
 
-## Setup
+## Getting started
 
 ```bash
 npm install
-cp .env.example .env                        # paste your Mapbox token in
-cp public/journey.example.yaml public/journey.yaml
-cp public/intro.example.yaml public/intro.yaml
-cp public/outro.example.yaml public/outro.yaml
+cp .env.example .env      # paste your Mapbox token in
 npm run dev
 ```
 
@@ -32,6 +29,92 @@ Your deck is yours: `journey.yaml`, `intro.yaml`, `outro.yaml` and everything
 under `public/images/` are gitignored, so a personal journey and its
 photographs never end up in the repository. The `.example.yaml` files are what
 ship here, and they document every option.
+
+### The smallest deck that works
+
+`public/journey.yaml` is the only content file you need, and three lines of it
+are enough:
+
+```yaml
+stops:
+  - title: Berlin
+    lng: 13.405
+    lat: 52.52
+```
+
+Every other key has a default: that deck is titled "Journey", uses the
+`standard` basemap, and opens on Berlin at zoom 11. A stop only ever requires
+`title`, `lng` and `lat`.
+
+To bracket the journey with cards that belong to no place, name the two
+optional card files:
+
+```yaml
+intro: intro.yaml
+outro: outro.yaml
+
+stops:
+  - title: Berlin
+    lng: 13.405
+    lat: 52.52
+```
+
+Each of those is a `cards:` list, where a card only requires `title`:
+
+```yaml
+cards:
+  - title: Where it started
+```
+
+An empty `cards: []` is valid too, and simply contributes nothing — so a file
+can stay wired up while you empty it out.
+
+For a fuller starting point, with every option present and commented, copy the
+examples instead of writing the files by hand:
+
+```bash
+cp public/journey.example.yaml public/journey.yaml
+cp public/intro.example.yaml public/intro.yaml
+cp public/outro.example.yaml public/outro.yaml
+```
+
+### Where the pictures go
+
+Put image files anywhere under `public/images/`. Paths in YAML are written from
+the site root rather than from the YAML file, so `public/images/berlin/street.jpg`
+is referenced as `/images/berlin/street.jpg`:
+
+```yaml
+stops:
+  - title: Berlin
+    lng: 13.405
+    lat: 52.52
+    images:
+      - /images/berlin/street.jpg
+```
+
+The long form adds alt text and an optional caption, and mixing the two forms
+in one list is fine:
+
+```yaml
+stops:
+  - title: Berlin
+    lng: 13.405
+    lat: 52.52
+    images:
+      - /images/berlin/street.jpg
+      - src: /images/berlin/gate.jpg
+        alt: A tram curving between old-town buildings at dusk
+        caption: Leaving the city
+```
+
+Folder names may contain spaces. One image renders as a plain figure; several
+become a carousel.
+
+Run `npm run validate` after adding pictures. It checks that every referenced
+file actually exists, which matters more than it sounds: the dev server answers
+an unknown path with the app's own HTML and a `200`, so a mistyped path yields a
+silently blank image rather than an error.
 
 ## Scripts
 
