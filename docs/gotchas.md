@@ -26,6 +26,21 @@ browser. Use `import.meta.env?.X`.
 **`sips -Z` overwrites the file in place.** Use `--out` to preserve originals.
 Verified the hard way: 908×689/190K became 800×607/57K in the same file.
 
+**An XML comment may not contain `--`.** SVG is XML, so writing a CSS custom
+property name such as `--ui-primary` inside a comment in `favicon.svg` makes the
+whole file invalid and the icon silently stops rendering — no console error, no
+broken-image marker, just an absent favicon. Write token names without their
+leading dashes in SVG comments.
+
+**Safari does not reliably take an SVG favicon.** Ship a `favicon.ico`
+alongside it, declared first, and let SVG-capable browsers pick the later
+`type="image/svg+xml"` link.
+
+**ImageMagick renders SVG gradients badly.** `magick favicon.svg out.png` turned
+an indigo radial gradient nearly black, which looks exactly like a broken file.
+Rasterise SVGs through a real browser before concluding anything about how one
+looks.
+
 ## Scroll and snap
 
 **`scroll-snap-type: mandatory` reverts a programmatic `scrollTo`** to the

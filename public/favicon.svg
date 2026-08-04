@@ -1,9 +1,13 @@
 <!--
-  A dotted trail arriving at a destination — the journey line the deck draws on
+  A dotted trail arriving at a destination: the journey line the deck draws on
   the map, reduced to what survives a 16px browser tab. Repeating one shape at
   three sizes keeps it legible there, where two different shapes would merge.
-  Colours are --ui-primary and the light/dark stops map-pin and map-circle
-  derive from it.
+  Colours are the ui-primary token, with the light and dark stops map-pin and
+  map-circle derive from it.
+
+  Token names are written without their leading dashes on purpose: an XML
+  comment may not contain a double hyphen, and one here made the whole file
+  invalid XML, which silently stopped the icon rendering.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
   <defs>

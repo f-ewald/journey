@@ -2,7 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Ordered widest-support first. Safari has never reliably taken an SVG
+      favicon, so the ICO is what it actually shows; browsers that do support
+      SVG prefer it because it is declared later and scales cleanly.
+    -->
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Journey</title>
   </head>
