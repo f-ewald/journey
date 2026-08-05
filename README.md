@@ -13,6 +13,18 @@ timeline.
 
 Built on [`@f-ewald/components`](https://www.npmjs.com/package/@f-ewald/components).
 
+## Screenshots
+
+Every shot below is the deck running on the example content that ships in
+`public/*.example.yaml`, so nothing here is anyone's real journey.
+
+|                                                                                                                                                    |                                                                                                                                         |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| ![A map stop: the camera framed on the left third, the card filling the right half](screenshots/map-view.jpg)                                      | ![The timeline layout: a centred line with the year on one side and the card on the other, alternating](screenshots/timeline-view.png)  |
+| **A map stop.** The camera frames the stop in the left third while the card fills the right half, and the dotted journey line draws as you scroll. | **The timeline layout.** Place-less intro and outro cards run down a centred line, year on one side and card on the other, alternating. |
+| ![The same deck on the Stamen Watercolor basemap](screenshots/basemap-watercolor.jpg)                                                              | ![A validation error naming the file, line and column, with a caret under the offending column](screenshots/validation-error.png)       |
+| **A different basemap.** `mapStyle: watercolor` — one of seven named presets, or any Mapbox style URL.                                             | **Content errors are located.** The file, line and column, the document path, and the offending line with a caret under it.             |
+
 ## Getting started
 
 ```bash
