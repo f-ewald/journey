@@ -107,9 +107,9 @@ none and throw. Config must be re-applied on `map-style-reloaded`, not just
 **The Static Images API cannot render the `standard` style** — it returns 400 on
 `mapbox.mapbox-landmark-icons-v1`. Use a real browser to preview basemaps.
 
-**Geocode, do not estimate.** "a research campus" silently
-falls back to the Vienna city centre, and a street address can resolve to a
-different street entirely. Verify each pin against the rendered map.
+**Geocode, do not estimate.** The name of a research campus silently fell back
+to the nearest city centre, and a street address resolved to a different street
+entirely. Verify each pin against the rendered map.
 
 ## Writing browser checks
 

@@ -162,8 +162,8 @@ showZoomControls: false # optional, zoom buttons + manual panning
 
 stops:
   - title: Northwind Labs # required — the place or organisation
-    location: Porto, CA # optional, geographic context for the title
-    year: 2011 # optional, shown above the title
+    location: Porto, Portugal # optional, geographic context for the title
+    year: 2012 # optional, shown above the title
     lng: -122.4194 # required
     lat: 37.7749 # required
     zoom: 11.5 # optional, overrides defaultZoom
@@ -182,8 +182,8 @@ Put it in `body`, using a YAML block scalar — the `|` keeps your line breaks:
 
 ```yaml
 - title: College & Startup
-  location: Vienna, Germany
-  year: 2005
+  location: Vienna, Austria
+  year: 2003
   lng: 7.0119
   lat: 51.4576
   body: |
@@ -217,7 +217,7 @@ Two things worth knowing when writing for a room rather than a screen:
 face, with the location a shade darker. Both are optional and independent:
 supply either, both, or neither. With both missing the line is dropped entirely
 rather than left as blank space. `year` accepts a number or a string, so both
-`year: 2011` and `year: "2011-2014"` work. Unknown keys are rejected, so a typo
+`year: 2012` and `year: "2012-2015"` work. Unknown keys are rejected, so a typo
 like `titel:` is an error rather than a silently missing field.
 
 `flyDurationMs` sets how long the camera takes to travel between stops, in

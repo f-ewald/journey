@@ -52,7 +52,7 @@ stops:
 
   - title: The middle years
     location: "Berlin, Germany"
-    year: "2004–2011"
+    year: "2003–2010"
     lng: 13.405
     lat: 52.52
     # Overrides defaultZoom for this stop only.
@@ -62,9 +62,9 @@ stops:
       entirely and the line is left out.
 
   - title: Where it leads
-    location: "Porto, CA"
-    lng: -122.0841
-    lat: 37.3861
+    location: "Porto, Portugal"
+    lng: -8.6291
+    lat: 41.1579
     zoom: 12
     body: |
       Add photographs with an `images:` list. Paths are relative to `public/`,

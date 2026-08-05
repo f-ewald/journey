@@ -16,7 +16,7 @@ cards:
       - another point
 
   - title: The question
-    year: "2004"
+    year: "2003"
     body: |
       In `timeline` layout this card mirrors the one above it: the year moves to
       the other side of the line, and the card with it.

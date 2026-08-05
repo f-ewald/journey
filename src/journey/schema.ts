@@ -24,7 +24,7 @@ const imageSchema = z.union([
   imageObjectSchema,
 ]);
 
-/** `year: 2011` and `year: "2011-2014"` are both valid; both become strings. */
+/** `year: 2012` and `year: "2012-2015"` are both valid; both become strings. */
 const yearSchema = z
   .union([z.string().min(1), z.number()])
   .transform((value) => String(value));
@@ -33,7 +33,7 @@ const yearSchema = z
 const cardFields = {
   title: z.string().min(1),
   year: yearSchema.nullish(),
-  /** Geographic context for the title, e.g. "Porto, CA". */
+  /** Geographic context for the title, e.g. "Porto, Portugal". */
   location: z.string().min(1).nullish(),
   body: z.string().default(""),
   images: z.array(imageSchema).default([]),
