@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Journey is a frontend-only, scroll-driven map presentation built on @f-ewald/components. Documentation, features and screenshots."
+    />
+    <link rel="icon" href="favicon.ico" sizes="16x16 32x32" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <title>Journey — a scroll-driven map presentation</title>
+    <style>
+      :root {
+        --bg: #fbfaf8;
+        --bg-raised: #ffffff;
+        --text: #1c1a17;
+        --text-muted: #5b564d;
+        --border: #e6e1d8;
+        --accent: #4f46e5;
+        --accent-soft: #eeecfd;
+        --code-bg: #f2efe9;
+        --shadow: 0 12px 30px -14px rgba(28, 26, 23, 0.25);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #131217;
+          --bg-raised: #1b1a20;
+          --text: #f1efe9;
+          --text-muted: #a7a29a;
+          --border: #322f38;
+          --accent: #9089ff;
+          --accent-soft: #23213a;
+          --code-bg: #201e26;
+          --shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.6);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        line-height: 1.6;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      code,
+      pre {
+        font-family:
+          ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      }
+
+      code {
+        background: var(--code-bg);
+        padding: 0.15em 0.4em;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1.1rem 1.25rem;
+        overflow-x: auto;
+        font-size: 0.88rem;
+      }
+
+      pre code {
+        background: none;
+        padding: 0;
+      }
+
+      .wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+      }
+
+      header.hero {
+        border-bottom: 1px solid var(--border);
+        background: linear-gradient(
+          180deg,
+          var(--accent-soft),
+          var(--bg) 85%
+        );
+      }
+
+      .hero-inner {
+        padding: 3.5rem 0 2.5rem;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+      }
+
+      .eyebrow img {
+        width: 20px;
+        height: 20px;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 5vw, 2.8rem);
+        margin: 0.6rem 0 0.5rem;
+        letter-spacing: -0.01em;
+      }
+
+      .tagline {
+        font-size: 1.15rem;
+        color: var(--text-muted);
+        max-width: 60ch;
+      }
+
+      .cta-row {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1.1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border: 1px solid var(--border);
+      }
+
+      .btn.primary {
+        background: var(--accent);
+        color: white;
+        border-color: transparent;
+      }
+
+      .btn.secondary {
+        background: var(--bg-raised);
+        color: var(--text);
+      }
+
+      .hero-shot {
+        margin-top: 2.5rem;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+      }
+
+      .hero-shot img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      main section {
+        padding: 3rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      main section:last-of-type {
+        border-bottom: none;
+      }
+
+      h2 {
+        font-size: 1.6rem;
+        margin-top: 0;
+      }
+
+      h3 {
+        font-size: 1.15rem;
+      }
+
+      .lede {
+        color: var(--text-muted);
+        max-width: 68ch;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.25rem;
+        margin-top: 1.75rem;
+      }
+
+      .feature-card {
+        background: var(--bg-raised);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem 1.4rem;
+      }
+
+      .feature-card h3 {
+        margin: 0 0 0.4rem;
+      }
+
+      .feature-card p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+      }
+
+      .shot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      figure {
+        margin: 0;
+      }
+
+      figure img {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        display: block;
+      }
+
+      figcaption {
+        margin-top: 0.6rem;
+        font-size: 0.92rem;
+        color: var(--text-muted);
+      }
+
+      figcaption strong {
+        color: var(--text);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.25rem;
+        font-size: 0.92rem;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 0.6rem 0.8rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+
+      .steps {
+        counter-reset: step;
+        list-style: none;
+        margin: 1.75rem 0 0;
+        padding: 0;
+        display: grid;
+        gap: 1rem;
+      }
+
+      .steps li {
+        counter-increment: step;
+        background: var(--bg-raised);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.25rem 1rem 3rem;
+        position: relative;
+      }
+
+      .steps li::before {
+        content: counter(step);
+        position: absolute;
+        left: 1rem;
+        top: 1rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .steps code {
+        display: block;
+        margin-top: 0.4rem;
+      }
+
+      .note {
+        border-left: 3px solid var(--accent);
+        background: var(--accent-soft);
+        padding: 0.9rem 1.1rem;
+        border-radius: 0 8px 8px 0;
+        font-size: 0.92rem;
+        margin-top: 1.5rem;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        align-items: start;
+      }
+
+      footer {
+        padding: 2.5rem 0 3.5rem;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      footer a {
+        color: var(--text-muted);
+        text-decoration: underline;
+      }
+
+      footer .links {
+        display: flex;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap hero-inner">
+        <span class="eyebrow">
+          <img src="favicon.svg" alt="" />
+          f-ewald / journey
+        </span>
+        <h1>A scroll-driven map presentation</h1>
+        <p class="tagline">
+          A frontend-only deck: a fixed full-viewport Mapbox map sits behind
+          snap-scrolled sections. The camera flies each stop into the centre
+          of the left third while a large card fills the right half, a dot
+          rail navigates, and a dotted line draws itself along the journey as
+          you scroll.
+        </p>
+        <div class="cta-row">
+          <a
+            class="btn primary"
+            href="https://github.com/f-ewald/journey"
+            >View on GitHub</a
+          >
+          <a
+            class="btn secondary"
+            href="https://github.com/f-ewald/journey#readme"
+            >Full README</a
+          >
+          <a
+            class="btn secondary"
+            href="https://www.npmjs.com/package/@f-ewald/components"
+            >@f-ewald/components</a
+          >
+        </div>
+        <div class="hero-shot">
+          <img
+            src="screenshots/map-view.jpg"
+            alt="A map stop: the camera framed on the left third, the card filling the right half"
+          />
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section id="what-it-offers">
+        <h2>What it offers</h2>
+        <p class="lede">
+          Everything here ships as YAML content and reusable components — no
+          hand-rolled scroll logic to write, no backend, no build step to
+          publish a new stop.
+        </p>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3>Scroll-synced camera</h3>
+            <p>
+              One stop per viewport, snapped. The map flies to the next
+              location as you scroll, and jumps instantly under
+              <code>prefers-reduced-motion</code>.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h3>Dot rail &amp; deep links</h3>
+            <p>
+              A rail on the right edge jumps to any stop; the active card is
+              mirrored in the URL as <code>#stop-3</code>, so a reload or a
+              shared link resumes in place.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h3>Progressive journey line</h3>
+            <p>
+              A dotted line draws along the route as you advance and retracts
+              as you scroll back, always clamped to the stop range.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h3>Intro &amp; outro cards</h3>
+            <p>
+              Cards with no place on the map can bracket the journey, laid out
+              over the dimmed map or down a timeline.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h3>Markdown cards</h3>
+            <p>
+              Headings, lists, tables, blockquotes, links and images — written
+              in a YAML block scalar, sanitised before render.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h3>Seven basemaps</h3>
+            <p>
+              Mapbox Standard, Light, Outdoors, Satellite, plus Stamen
+              Watercolor, Terrain and Toner — or any Mapbox style URL.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h3>Image galleries</h3>
+            <p>
+              One image renders as a plain figure; several become a carousel,
+              with optional alt text and captions.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h3>Content errors that point at the line</h3>
+            <p>
+              A schema-checked deck reports the file, line, column and
+              offending source line — on the projector, not just in a
+              terminal.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="screenshots">
+        <h2>Screenshots</h2>
+        <p class="lede">
+          Every shot below is the deck running on the example content that
+          ships in <code>public/*.example.yaml</code> — nothing here is
+          anyone's real journey.
+        </p>
+        <div class="shot-grid">
+          <figure>
+            <img
+              src="screenshots/map-view.jpg"
+              alt="A map stop: the camera framed on the left third, the card filling the right half"
+            />
+            <figcaption>
+              <strong>A map stop.</strong> The camera frames the stop in the
+              left third while the card fills the right half, and the dotted
+              journey line draws as you scroll.
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="screenshots/timeline-view.png"
+              alt="The timeline layout: a centred line with the year on one side and the card on the other, alternating"
+            />
+            <figcaption>
+              <strong>The timeline layout.</strong> Place-less intro and outro
+              cards run down a centred line, year on one side and card on the
+              other, alternating.
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="screenshots/basemap-watercolor.jpg"
+              alt="The same deck on the Stamen Watercolor basemap"
+            />
+            <figcaption>
+              <strong>A different basemap.</strong>
+              <code>mapStyle: watercolor</code> — one of seven named presets,
+              or any Mapbox style URL.
+            </figcaption>
+          </figure>
+          <figure>
+            <img
+              src="screenshots/validation-error.png"
+              alt="A validation error naming the file, line and column, with a caret under the offending column"
+            />
+            <figcaption>
+              <strong>Content errors are located.</strong> The file, line and
+              column, the document path, and the offending line with a caret
+              under it.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="getting-started">
+        <h2>Getting started</h2>
+        <p class="lede">
+          Journey is a project you run and author content for — clone it,
+          point it at your own YAML, and it's your deck.
+        </p>
+        <ol class="steps">
+          <li>
+            Clone the repository and install dependencies
+            <code>npm install</code>
+          </li>
+          <li>
+            Add a Mapbox token — create one at
+            <a href="https://account.mapbox.com/access-tokens/"
+              >account.mapbox.com</a
+            >, then
+            <code>cp .env.example .env</code> and paste it in.
+            <code>.env</code> is gitignored. Without a token the app renders
+            an explicit error instead of a blank map.
+          </li>
+          <li>Start the dev server <code>npm run dev</code></li>
+          <li>
+            Copy the example content to get a full starting deck
+            <code
+              >cp public/journey.example.yaml public/journey.yaml
+cp public/intro.example.yaml public/intro.yaml
+cp public/outro.example.yaml public/outro.yaml</code
+            >
+          </li>
+        </ol>
+        <p class="note">
+          Your deck is yours: <code>journey.yaml</code>,
+          <code>intro.yaml</code>, <code>outro.yaml</code> and everything
+          under <code>public/images/</code> are gitignored, so a personal
+          journey and its photographs never end up in the repository. The
+          <code>.example.yaml</code> files are what ship, and they document
+          every option.
+        </p>
+      </section>
+
+      <section id="authoring">
+        <h2>Authoring content</h2>
+        <p class="lede">
+          Content is fetched at runtime, so editing YAML needs no rebuild —
+          save the file and reload the page.
+          <code>public/journey.yaml</code> is the only file you need, and
+          three lines are enough:
+        </p>
+        <pre><code>stops:
+  - title: Berlin
+    lng: 13.405
+    lat: 52.52</code></pre>
+        <p class="lede">
+          Every other key has a default — that deck is titled "Journey", uses
+          the <code>standard</code> basemap, and opens on Berlin at zoom 11. A
+          stop only ever requires <code>title</code>, <code>lng</code> and
+          <code>lat</code>. A fuller deck adds a title, a basemap, and
+          intro/outro cards:
+        </p>
+        <pre><code>title: California Coast Journey
+mapStyle: watercolor
+layout: timeline
+intro: intro.yaml
+outro: outro.yaml
+
+stops:
+  - title: Northwind Labs
+    location: Porto, Portugal
+    year: 2012
+    lng: -122.4194
+    lat: 37.7749
+    body: |
+      Fog rolls through the Golden Gate most summer mornings.
+    images:
+      - src: /images/golden-gate.jpg
+        alt: The Golden Gate Bridge at dawn
+        caption: Leaving the city</code></pre>
+        <p class="lede">
+          Pictures live anywhere under <code>public/images/</code>, referenced
+          from the site root — <code>public/images/berlin/street.jpg</code>
+          becomes <code>/images/berlin/street.jpg</code> in YAML. One image
+          renders as a plain figure; several become a carousel. Run
+          <code>npm run validate</code> after adding pictures — the dev server
+          answers an unknown path with the app's own HTML and a
+          <code>200</code>, so a mistyped path otherwise yields a silently
+          blank image rather than an error.
+        </p>
+
+        <h3>Basemaps</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Basemap</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>standard</code></td>
+              <td>Mapbox Standard (default)</td>
+            </tr>
+            <tr>
+              <td><code>light</code> / <code>outdoors</code> /
+                <code>satellite</code></td>
+              <td>The corresponding Mapbox styles</td>
+            </tr>
+            <tr>
+              <td><code>watercolor</code></td>
+              <td>Stamen Watercolor — painterly, with place names layered on</td>
+            </tr>
+            <tr>
+              <td><code>terrain</code></td>
+              <td>Stamen Terrain</td>
+            </tr>
+            <tr>
+              <td><code>toner</code></td>
+              <td>Stamen Toner — high-contrast black and white</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          <code>mapStyle</code> also accepts any Mapbox style URL directly.
+          The Stamen basemaps are anonymously rate-limited; for anything that
+          has to be reliable, put a free Stadia Maps key in
+          <code>.env</code> as <code>VITE_STADIA_API_KEY</code>.
+        </p>
+      </section>
+
+      <section id="navigation">
+        <div class="two-col">
+          <div>
+            <h2>Navigation</h2>
+            <table>
+              <tbody>
+                <tr>
+                  <th>Scroll</th>
+                  <td>One stop per viewport, snapped.</td>
+                </tr>
+                <tr>
+                  <th>Keyboard</th>
+                  <td>
+                    Space, page up/down and the arrow keys work as usual.
+                  </td>
+                </tr>
+                <tr>
+                  <th>Dot rail</th>
+                  <td>
+                    Click any dot to glide to that stop; the active stop is
+                    the elongated bar.
+                  </td>
+                </tr>
+                <tr>
+                  <th>Full screen</th>
+                  <td>
+                    The button below the rail expands the deck; Escape or the
+                    button again leaves it.
+                  </td>
+                </tr>
+                <tr>
+                  <th>URL</th>
+                  <td>
+                    The active card mirrors as <code>#intro-1</code>,
+                    <code>#stop-3</code> or <code>#outro-2</code>, so a
+                    reload resumes at the same place.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <h2>Scripts</h2>
+            <table>
+              <tbody>
+                <tr>
+                  <td><code>npm run dev</code></td>
+                  <td>Dev server with hot reload.</td>
+                </tr>
+                <tr>
+                  <td><code>npm run validate</code></td>
+                  <td>
+                    Schema-check the YAML and verify every image exists.
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>npm run typecheck</code></td>
+                  <td><code>tsc --noEmit</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>npm run build</code></td>
+                  <td>Typecheck, then build into <code>dist/</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>npm run preview</code></td>
+                  <td>Serve the production build.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="non-goals">
+        <h2>Non-goals</h2>
+        <p class="lede">
+          Phones and narrow viewports are <strong>not</strong> supported — the
+          layout is a fixed horizontal split intended for a laptop or
+          projector, with no fallback arrangement. There is also no deployment
+          setup for the deck itself: a static deploy would embed the Mapbox
+          token in the client bundle, which needs a separate,
+          URL-restricted public token. (This documentation page carries no
+          token and no map — it only shows static screenshots.)
+        </p>
+      </section>
+    </main>
+
+    <footer class="wrap">
+      <div class="links">
+        <a href="https://github.com/f-ewald/journey">Repository</a>
+        <a href="https://github.com/f-ewald/journey#readme">README</a>
+        <a href="https://github.com/f-ewald/journey/blob/main/docs/gotchas.md"
+          >Gotchas</a
+        >
+        <a href="https://www.npmjs.com/package/@f-ewald/components"
+          >@f-ewald/components on npm</a
+        >
+      </div>
+      <p>
+        This page documents the project; it does not run the deck itself —
+        that needs a Mapbox token and your own content, see
+        <a href="https://github.com/f-ewald/journey#readme">Getting started</a
+        >.
+      </p>
+    </footer>
+  </body>
+</html>

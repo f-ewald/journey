@@ -57,6 +57,7 @@ scroll.ts publishes the single {activeIndex, segmentIndex, segmentProgress} sign
 | `src/hash.ts`   | `#intro-n` / `#stop-n` / `#outro-n` deep linking.                                 |
 | `src/main.ts`   | Orchestration. The riskiest file — most invariants live here.                     |
 | `scripts/`      | `validate-journey.mjs`, sharing the runtime schema.                               |
+| `site/`         | The GitHub Pages docs site — plain static HTML, no build step. Deployed by `.github/workflows/pages.yml` on push to `main`. |
 
 ## Invariants
 
@@ -116,6 +117,13 @@ horizontal split for a laptop or projector. There is no deployment setup: a
 static deploy would embed the Mapbox token in the client bundle.
 
 Do not add a test framework, a backend, or a router.
+
+"No deployment setup" is about the deck app itself, which needs a Mapbox
+token. `site/` is a separate, unrelated static docs page (README content plus
+the `screenshots/` already in the repo) with no map and no token, deployed to
+GitHub Pages by `.github/workflows/pages.yml`. It copies `screenshots/` and
+the favicon in at deploy time rather than duplicating those files under
+`site/`, so keep it that way — don't commit copies into `site/`.
 
 ## Verifying a change
 
